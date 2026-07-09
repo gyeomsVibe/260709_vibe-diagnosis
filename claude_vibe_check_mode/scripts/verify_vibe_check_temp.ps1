@@ -5,8 +5,8 @@ New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
 
 try {
   Push-Location $tempRoot
-  & npx vibe-diagnosis init
-  & npx vibe-diagnosis run
+  & npx -y --package=vibe-diagnosis vibe-diag init
+  & npx -y --package=vibe-diagnosis vibe-diag run
   if (!(Test-Path ".vibe-diagnosis")) {
     throw ".vibe-diagnosis was not created."
   }

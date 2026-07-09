@@ -83,16 +83,16 @@ You: "Apply vibe-diagnosis to this project"
 Install globally or use via npx:
 
 ```bash
-npx vibe-diag init                        # Initialize .vibe-diagnosis/ + auto-configure MCP
-npx vibe-diag run                         # Run all diagnostics
-npx vibe-diag run --json                  # JSON output (for CI/CD)
-npx vibe-diag dashboard                   # Open web dashboard
-npx vibe-diag config get                  # Show BYOK configuration
-npx vibe-diag config set provider openai  # Set AI provider
-npx vibe-diag config set apiKey sk-...    # Set API key
-npx vibe-diag config set model gpt-4o     # Set model name
-npx vibe-diag repair <diagId>             # Auto-repair a specific diagnostic
-npx vibe-diag repair --all                # Auto-repair all failing diagnostics
+npx -y --package=vibe-diagnosis vibe-diag init                        # Initialize .vibe-diagnosis/ + auto-configure MCP
+npx -y --package=vibe-diagnosis vibe-diag run                         # Run all diagnostics
+npx -y --package=vibe-diagnosis vibe-diag run --json                  # JSON output (for CI/CD)
+npx -y --package=vibe-diagnosis vibe-diag dashboard                   # Open web dashboard
+npx -y --package=vibe-diagnosis vibe-diag config get                  # Show BYOK configuration
+npx -y --package=vibe-diagnosis vibe-diag config set provider openai  # Set AI provider
+npx -y --package=vibe-diagnosis vibe-diag config set apiKey sk-...    # Set API key
+npx -y --package=vibe-diagnosis vibe-diag config set model gpt-4o     # Set model name
+npx -y --package=vibe-diagnosis vibe-diag repair <diagId>             # Auto-repair a specific diagnostic
+npx -y --package=vibe-diagnosis vibe-diag repair --all                # Auto-repair all failing diagnostics
 npm run sync:rules                        # Synchronize GEMINI.md ↔ SKILL.md rules
 ```
 
@@ -143,8 +143,8 @@ module.exports = {
 ## 🖥️ Web Dashboard
 
 ```bash
-npx vibe-diag dashboard            # http://localhost:7700
-npx vibe-diag dashboard --port 8080
+npx -y --package=vibe-diagnosis vibe-diag dashboard            # http://localhost:7700
+npx -y --package=vibe-diagnosis vibe-diag dashboard --port 8080
 ```
 
 The dashboard server binds to `127.0.0.1` only, so it is not exposed to other machines on your network.
