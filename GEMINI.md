@@ -28,7 +28,7 @@
 ## Behavior
 
 1. Confirm project root and current git state.
-2. Check vibe-diagnosis availability (MCP tools or `npx vibe-diag`).
+2. Check vibe-diagnosis availability (MCP tools or `npx -y --package=vibe-diagnosis vibe-diag`).
 3. If `.vibe-diagnosis/` is missing → `init_diagnostics`.
 4. If it already exists → init is idempotent: existing files are untouched,
    only `.gitignore` entry and MCP config are reinforced.
