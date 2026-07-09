@@ -73,7 +73,10 @@ async function main() {
       console.log('    vibe-diag config set <key> <value>  Set BYOK config (provider, apiKey, model)');
       console.log('    vibe-diag repair <diagId>      Auto-repair a specific diagnostic with AI');
       console.log('    vibe-diag repair --all         Auto-repair all failing diagnostics');
-      console.log('    vibe-diag --cwd <path>        Run in specified directory\n');
+      console.log('');
+      console.log('  Options:');
+      console.log('    --cwd <path>                   Target another project directory');
+      console.log('                                   e.g. vibe-diag run --cwd examples/calculator\n');
     }
   }
 }

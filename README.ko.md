@@ -173,6 +173,13 @@ npx vibe-diag dashboard --port 8080
 
 설정 완료 후, ERROR/WARNING 진단 카드에 **Auto Repair** 버튼이 표시됩니다. 클릭하면 AI가 자동으로 문제를 분석하고 수리합니다.
 
+### Auto Repair 동작 경계
+
+- Auto Repair는 **전체 파일 치환** 방식입니다 — AI가 부분 패치가 아닌 파일 전체 내용을 반환합니다.
+- 변경 전 각 파일의 **`.bak` 백업**을 먼저 생성합니다.
+- 변경 적용 후 해당 진단을 **자동으로 재실행**합니다.
+- 성공 판정은 AI의 주장이 아니라 **재실행 결과(`status === 'OK'`) 기준**입니다.
+
 ### 환경변수 오버라이드
 
 CI/CD나 팀 공유 환경에서는 환경변수로 설정할 수도 있습니다:
@@ -198,7 +205,7 @@ export VIBE_DIAG_MODEL=gpt-4o          # 선택사항
 VS Code 확장 마켓플레이스에서 `vibe-diagnosis` 검색, 또는 `.vsix`로 설치:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. `vibe-diagnosis-vscode-1.1.0.vsix` 선택
+2. `vibe-diagnosis-vscode-1.1.1.vsix` 선택
 
 **커맨드:**
 - `Vibe Diagnosis: Run` — 진단 실행

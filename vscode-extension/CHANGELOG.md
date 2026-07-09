@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.1.1
+- Fixed: dashboard launched from VS Code was killed after 5 seconds (exec timeout → detached spawn)
+- Fixed: Auto Repair now syncs dashboard run state before repairing and reports a clear error when the dashboard server is not running
+- Changed: publisher/repository metadata now points to gyeoms-vibe/260709_vibe-diagnosis (original author Rejard preserved in contributors)
+
 ## 1.1.0
 - Added: Auto Repair command (BYOK AI-powered auto-repair)
 - Added: QuickPick UI for selecting which diagnostic to repair

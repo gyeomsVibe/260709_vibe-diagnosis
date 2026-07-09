@@ -88,29 +88,18 @@ server.tool(
   async ({ projectDir }) => {
     try {
       const diagRoot = path.join(projectDir, ".vibe-diagnosis");
-
-      if (fs.existsSync(diagRoot)) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `.vibe-diagnosis/ already exists in ${projectDir}`,
-            },
-          ],
-        };
-      }
+      const existed = fs.existsSync(diagRoot);
 
       const origLog = console.log;
       console.log = () => {};
       try { initialize(projectDir); } finally { console.log = origLog; }
 
+      const text = existed
+        ? `.vibe-diagnosis/ already exists in ${projectDir} — existing files were not touched. .gitignore entry and MCP config were ensured.`
+        : `Initialized .vibe-diagnosis/ in ${projectDir}\n\nCreated:\n- .vibe-diagnosis/config.json\n- .vibe-diagnosis/diagnostics/example.diag.js\n- .vibe-diagnosis/error-patterns/ERR_000_template.md`;
+
       return {
-        content: [
-          {
-            type: "text",
-            text: `Initialized .vibe-diagnosis/ in ${projectDir}\n\nCreated:\n- .vibe-diagnosis/config.json\n- .vibe-diagnosis/diagnostics/example.diag.js\n- .vibe-diagnosis/error-patterns/ERR_000_template.md`,
-          },
-        ],
+        content: [{ type: "text", text }],
       };
     } catch (err) {
       return {

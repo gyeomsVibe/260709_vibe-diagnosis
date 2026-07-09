@@ -186,6 +186,13 @@ Open the dashboard and use the BYOK configuration bar at the top:
 
 Once configured, ERROR and WARNING diagnostic cards will show an **Auto Repair** button. Click it to automatically fix the issue using your AI provider.
 
+### How Auto Repair works (boundaries)
+
+- Auto Repair uses **whole-file replacement** — the AI returns complete file contents, not partial patches.
+- A `.bak` backup of each file is created **before** any change is written.
+- After applying changes, the failing diagnostic is **re-run automatically**.
+- Success is judged **only by the re-run result** (`status === 'OK'`), never by the AI's own claim.
+
 ### Environment Variable Override
 
 You can also configure BYOK via environment variables (useful for CI/CD or team-shared setups):
@@ -211,7 +218,7 @@ Environment variables take precedence over `config.json` settings.
 Search `vibe-diagnosis` in VS Code Extensions Marketplace, or install from `.vsix`:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. Select `vibe-diagnosis-vscode-1.1.0.vsix`
+2. Select `vibe-diagnosis-vscode-1.1.1.vsix`
 
 **Commands:**
 - `Vibe Diagnosis: Run` — Run all diagnostics

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "vibe-diagnosis": {
-      "command": "npx",
-      "args": ["vibe-diagnosis-mcp"]
+      "command": "node",
+      "args": ["mcp-server/index.js"]
     }
   }
 }

@@ -43,7 +43,11 @@ function initialize(targetDir) {
   const errorPatternsDir = path.join(diagRoot, 'error-patterns');
 
   if (fs.existsSync(diagRoot)) {
-    console.log(`\n  \x1b[33m⚠️  .vibe-diagnosis/ already exists in ${targetDir}\x1b[0m\n`);
+    ensureGitignore(targetDir);
+    const mcpEnsured = setupGeminiMcp(targetDir);
+    console.log(`\n  \x1b[33m⚠️  .vibe-diagnosis/ already exists in ${targetDir}\x1b[0m`);
+    console.log(`  Existing files were not touched.`);
+    console.log(`  .gitignore entry ensured${mcpEnsured ? ', MCP config added to .gemini/settings.json' : ', MCP config already present'}.\n`);
     return;
   }
 

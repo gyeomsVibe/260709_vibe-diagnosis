@@ -32,7 +32,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "vibe-diagnosis": "^1.1.0",
+    "vibe-diagnosis": "file:..",
     "zod": "^3.24.0"
   }
 }
