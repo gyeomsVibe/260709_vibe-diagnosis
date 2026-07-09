@@ -1,0 +1,15 @@
+{
+  "artifact_class": "claude_code_vibe_check_mode_package",
+  "status": "draft_install_package",
+  "files": [
+    "README.md",
+    "install_claude_vibe_check.ps1",
+    "install_claude_vibe_check.sh",
+    "CLAUDE_CODE_AGENT_HANDOFF.md",
+    "scripts/verify_vibe_check_temp.ps1",
+    "scripts/verify_vibe_check_temp.sh",
+    "docs/VIBE_CHECK_CLAUDE_CODE_MODE.md",
+    "global/CLAUDE.md.snippet",
+    ".claude/skills/vibe-check/SKILL.md"
+  ]
+}

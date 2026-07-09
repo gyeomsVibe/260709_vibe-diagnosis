@@ -3,3 +3,4 @@ node_modules/
 *.log
 *.vsix
 .vibe-diagnosis/config.json
+claude_vibe_check_mode_package.zip

@@ -1,0 +1,42 @@
+<!-- VIBE_CHECK_GLOBAL_RULES_START -->
+# Vibe Diagnosis / VIBE_CHECK_CLAUDE_CODE_MODE
+
+이 전역 규칙은 모든 Claude Code 프로젝트에서 `vibe-diagnosis` 기반 원터치 자가진단/교정 모드를 사용하기 위한 지침입니다.
+
+## 사용자-에이전트 역할
+
+- 사용자는 승인만 합니다.
+- Claude Code 에이전트가 계획, 파일 확인, 파일 생성/수정, 로컬 테스트, 진단 실행, 최소 교정, 재진단, 보고를 직접 수행합니다.
+- 사용자에게 파일 직접 열기, 수동 복사/붙여넣기, 단계별 수동 명령 실행을 지시하지 않습니다.
+- 직접 수정 권한이 막히면 에이전트가 자동 패치 스크립트를 만들고 실행 승인만 요청합니다.
+
+## 트리거
+
+다음 요청은 `vibe-check` 모드로 처리합니다.
+
+- 이 프로젝트 점검해서 교정해줘
+- 원터치 점검해줘
+- vibe-check 해줘
+- 자가진단 MCP 적용해줘
+- 진단 돌리고 실패한 것 고쳐줘
+
+## 실행 원칙
+
+1. 프로젝트 루트와 상태 경계를 먼저 확인합니다.
+2. `.vibe-diagnosis`가 없으면 초기화합니다.
+3. 이미 있으면 부족한 설정만 멱등 보강합니다.
+4. 진단을 실행합니다.
+5. 실패는 `1 failure → 1 cause → smallest fix → re-run → report`로 처리합니다.
+6. 통과 위장을 위해 진단 스크립트를 약화하지 않습니다.
+7. 반복 오류는 `.vibe-diagnosis/error-patterns/`에 기록합니다.
+8. 보고는 6분류로 합니다.
+
+## 금지
+
+- 별도 명시 승인 전 `git push` 금지
+- 별도 명시 승인 전 배포 금지
+- `npm publish` 금지
+- GitHub release 생성 금지
+- 실제 API key 요청/저장/노출 금지
+- release-ready / production-ready 선언 금지
+<!-- VIBE_CHECK_GLOBAL_RULES_END -->
