@@ -18,14 +18,17 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Rejard/vibe-diagnosis.git",
+    "url": "git+https://github.com/gyeoms-vibe/260709_vibe-diagnosis.git",
     "directory": "mcp-server"
   },
-  "homepage": "https://github.com/Rejard/vibe-diagnosis#readme",
+  "homepage": "https://github.com/gyeoms-vibe/260709_vibe-diagnosis#readme",
   "bugs": {
-    "url": "https://github.com/Rejard/vibe-diagnosis/issues"
+    "url": "https://github.com/gyeoms-vibe/260709_vibe-diagnosis/issues"
   },
-  "author": "Rejard <lemaiiisk@gmail.com>",
+  "author": "gyeoms-vibe <gyeomsvibe@gmail.com>",
+  "contributors": [
+    "Rejard <lemaiiisk@gmail.com>"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
