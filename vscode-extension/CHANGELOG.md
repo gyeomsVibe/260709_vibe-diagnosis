@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.1.3
+- Fixed: npx fallback execution command for CLI in non-cached environments (corrected from package-name-only fallback to target executable `vibe-diag` within `vibe-diagnosis` package using `--package=vibe-diagnosis`)
+
 ## 1.1.2
 - Changed: publisher and repository metadata updated to the renamed GitHub account gyeomsVibe (was gyeoms-vibe); no functional changes
 

@@ -1,6 +1,7 @@
 const vscode = require('vscode');
-const { exec, spawn } = require('child_process');
+const { exec, execFile, spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 const http = require('http');
 
 const DASHBOARD_PORT = 7700;
@@ -48,14 +49,38 @@ function getWorkspaceRoot() {
   return folders[0].uri.fsPath;
 }
 
-function findVibeDiagBin() {
+// Resolve how to invoke the vibe-diag CLI. Prefers shell-free execFile targets:
+// 1) dev checkout of this repo  2) project-local node_modules install
+// 3) npx fallback — the npm package is "vibe-diagnosis" (its bin is named
+//    vibe-diag); "npx vibe-diag" would 404 because no package of that name
+//    exists. npx.cmd requires a shell on Windows, hence shell: true.
+function resolveVibeDiagInvocation(workspaceRoot, cliArgs) {
   try {
     const mainPkg = require('../../package.json');
     if (mainPkg && mainPkg.name === 'vibe-diagnosis') {
-      return path.resolve(__dirname, '..', '..', 'bin', 'vibe-diag.js');
+      return { file: 'node', args: [path.resolve(__dirname, '..', '..', 'bin', 'vibe-diag.js'), ...cliArgs], shell: false };
     }
   } catch {}
-  return 'npx vibe-diag';
+
+  const localBin = path.join(workspaceRoot, 'node_modules', 'vibe-diagnosis', 'bin', 'vibe-diag.js');
+  if (fs.existsSync(localBin)) {
+    return { file: 'node', args: [localBin, ...cliArgs], shell: false };
+  }
+
+  return { file: 'npx', args: ['-y', '--package=vibe-diagnosis', 'vibe-diag', ...cliArgs], shell: true };
+}
+
+function runVibeDiag(workspaceRoot, cliArgs, options, callback) {
+  const inv = resolveVibeDiagInvocation(workspaceRoot, cliArgs);
+  if (!inv.shell) {
+    return execFile(inv.file, inv.args, { windowsHide: true, ...options }, callback);
+  }
+  if (inv.args.some(a => a.includes('"'))) {
+    callback(new Error('Unsupported character (") in workspace path'), '', '');
+    return null;
+  }
+  const cmd = [inv.file, ...inv.args.map(a => (/\s/.test(a) ? `"${a}"` : a))].join(' ');
+  return exec(cmd, { windowsHide: true, ...options }, callback);
 }
 
 function runDiagnostics(jsonMode) {
@@ -65,15 +90,9 @@ function runDiagnostics(jsonMode) {
     return;
   }
 
-  const bin = findVibeDiagBin();
-  const isLocalBin = bin.endsWith('.js');
-  const cmd = isLocalBin
-    ? `node "${bin}" run --json --cwd "${workspaceRoot}"`
-    : `npx vibe-diag run --json --cwd "${workspaceRoot}"`;
-
   statusBarItem.text = '$(sync~spin) Diagnosing...';
 
-  exec(cmd, { windowsHide: true, timeout: 30000 }, (error, stdout, stderr) => {
+  runVibeDiag(workspaceRoot, ['run', '--json', '--cwd', workspaceRoot], { timeout: 30000 }, (error, stdout, stderr) => {
     let parsed;
     try {
       parsed = JSON.parse(stdout);
@@ -101,13 +120,7 @@ function runDiagnostics(jsonMode) {
 
 function runDiagnosticsAsync(workspaceRoot) {
   return new Promise((resolve, reject) => {
-    const bin = findVibeDiagBin();
-    const isLocalBin = bin.endsWith('.js');
-    const cmd = isLocalBin
-      ? `node "${bin}" run --json --cwd "${workspaceRoot}"`
-      : `npx vibe-diag run --json --cwd "${workspaceRoot}"`;
-
-    exec(cmd, { windowsHide: true, timeout: 30000 }, (error, stdout, stderr) => {
+    runVibeDiag(workspaceRoot, ['run', '--json', '--cwd', workspaceRoot], { timeout: 30000 }, (error, stdout, stderr) => {
       try {
         resolve(JSON.parse(stdout));
       } catch {
@@ -296,13 +309,7 @@ function initDiagnostics() {
     return;
   }
 
-  const bin = findVibeDiagBin();
-  const isLocalBin = bin.endsWith('.js');
-  const cmd = isLocalBin
-    ? `node "${bin}" init`
-    : `npx vibe-diag init`;
-
-  exec(cmd, { cwd: workspaceRoot, windowsHide: true, timeout: 15000 }, (error, stdout, stderr) => {
+  runVibeDiag(workspaceRoot, ['init'], { cwd: workspaceRoot, timeout: 15000 }, (error, stdout, stderr) => {
     outputChannel.clear();
     outputChannel.appendLine(stdout || '');
     if (stderr) outputChannel.appendLine(stderr);
@@ -323,20 +330,20 @@ function openDashboard() {
     return;
   }
 
-  const bin = findVibeDiagBin();
-  const isLocalBin = bin.endsWith('.js');
+  const dashArgs = ['dashboard', '--cwd', workspaceRoot, '--port', String(DASHBOARD_PORT)];
+  const inv = resolveVibeDiagInvocation(workspaceRoot, dashArgs);
 
-  const command = isLocalBin ? 'node' : 'npx';
-  const dashArgs = isLocalBin
-    ? [bin, 'dashboard', '--cwd', workspaceRoot, '--port', String(DASHBOARD_PORT)]
-    : ['vibe-diag', 'dashboard', '--cwd', workspaceRoot, '--port', String(DASHBOARD_PORT)];
-
-  const child = spawn(command, dashArgs, {
-    windowsHide: true,
-    detached: true,
-    stdio: 'ignore',
-  });
-  child.unref();
+  if (!inv.shell) {
+    const child = spawn(inv.file, inv.args, {
+      windowsHide: true,
+      detached: true,
+      stdio: 'ignore',
+    });
+    child.unref();
+  } else {
+    // npx fallback: long-running server stays attached to the extension host
+    runVibeDiag(workspaceRoot, dashArgs, {}, () => {});
+  }
 
   vscode.window.showInformationMessage(`Vibe Diagnosis: Dashboard opened at http://localhost:${DASHBOARD_PORT}`);
 }
