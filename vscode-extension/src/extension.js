@@ -50,10 +50,10 @@ function getWorkspaceRoot() {
 }
 
 // Resolve how to invoke the vibe-diag CLI. Prefers shell-free execFile targets:
-// 1) dev checkout of this repo  2) project-local node_modules install
-// 3) npx fallback — the npm package is "vibe-diagnosis" (its bin is named
-//    vibe-diag); "npx vibe-diag" would 404 because no package of that name
-//    exists. npx.cmd requires a shell on Windows, hence shell: true.
+// 1) dev checkout of this repo
+// 2) workspace root 'bin/vibe-diag.js' (local CLI)
+// 3) project-local node_modules 'vibe-diagnosis/bin/vibe-diag.js' install
+// If no local CLI is found, returns null (registry execution is not supported).
 function resolveVibeDiagInvocation(workspaceRoot, cliArgs) {
   try {
     const mainPkg = require('../../package.json');
