@@ -29,6 +29,7 @@
 | 2 | SKILL.md 승인 기반 autorun 확장 | ✅ 완료 | 승인 구조 표, Phase A~E 묶음, `1 failure → 1 cause → smallest fix → re-run → report` 원칙, 보고 6분류 |
 | 3 | README(en/ko) 원터치 점검 모드 섹션 | ✅ 완료 | 트리거 3종(짧은/보통/정확한) + 최초 세션 승인 문장 + 금지 목록 |
 | 4 | 트리거 문구 정합화 | ✅ 완료 | SKILL.md ↔ GEMINI.md ↔ README 동일 트리거 세트 |
+| G | Cleanup + Ledger Reconciliation | ✅ 완료 | 임시 스크립트(.ps1) 및 test-vibe 삭제, task/walkthrough 갱신 |
 | — | Level 4 Hook (자동 재진단: 파일 수정 후/커밋 전) | 🔮 future | MVP 제외 (설계 문서 원칙: 프롬프트 → Skill → GEMINI.md → Hook 순서). 필요 시 별도 설계 |
 
 ## 남은 큐 (미착수 / 별도 결정 필요)

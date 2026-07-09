@@ -1,0 +1,5 @@
+- [x] 전역 MCP 설정 (mcp_config.json) 수정 (에이전트 자동 패치 완료)
+- [x] 글로벌 스킬 (skills/vibe-check/SKILL.md) 신규 생성
+- [x] 글로벌 룰 (AGENTS.md) 신규 생성 (에이전트 자동 패치 완료)
+- [x] 임시 디렉토리에서 원터치 점검 모드 작동 여부 모의 검증 완료
+- [x] Phase G — 임시 산출물 정리 및 Ledger Reconciliation 완료
