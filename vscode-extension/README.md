@@ -29,6 +29,6 @@ Self-diagnosis framework for vibe coding projects.
 
 ## Links
 
-- [GitHub](https://github.com/gyeoms-vibe/260709_vibe-diagnosis)
+- [GitHub](https://github.com/gyeomsVibe/260709_vibe-diagnosis)
 - [npm (CLI)](https://www.npmjs.com/package/vibe-diagnosis)
 - [npm (MCP Server)](https://www.npmjs.com/package/vibe-diagnosis-mcp)

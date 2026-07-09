@@ -220,7 +220,7 @@ Environment variables take precedence over `config.json` settings.
 Search `vibe-diagnosis` in VS Code Extensions Marketplace, or install from `.vsix`:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. Select `vibe-diagnosis-vscode-1.1.1.vsix`
+2. Select `vibe-diagnosis-vscode-1.1.2.vsix`
 
 **Commands:**
 - `Vibe Diagnosis: Run` — Run all diagnostics

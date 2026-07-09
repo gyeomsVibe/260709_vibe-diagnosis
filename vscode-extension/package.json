@@ -2,8 +2,8 @@
   "name": "vibe-diagnosis-vscode",
   "displayName": "Vibe Diagnosis",
   "description": "Self-diagnosis framework for vibe coding projects — Health monitoring, diagnostics dashboard, and error pattern tracking for AI-assisted development",
-  "version": "1.1.1",
-  "publisher": "gyeoms-vibe",
+  "version": "1.1.2",
+  "publisher": "gyeomsVibe",
   "license": "Apache-2.0",
   "contributors": [
     "Rejard <lemaiiisk@gmail.com>"
@@ -27,11 +27,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/gyeoms-vibe/260709_vibe-diagnosis"
+    "url": "https://github.com/gyeomsVibe/260709_vibe-diagnosis"
   },
-  "homepage": "https://github.com/gyeoms-vibe/260709_vibe-diagnosis#readme",
+  "homepage": "https://github.com/gyeomsVibe/260709_vibe-diagnosis#readme",
   "bugs": {
-    "url": "https://github.com/gyeoms-vibe/260709_vibe-diagnosis/issues"
+    "url": "https://github.com/gyeomsVibe/260709_vibe-diagnosis/issues"
   },
   "main": "./src/extension.js",
   "activationEvents": [

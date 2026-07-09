@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.1.2
+- Changed: publisher and repository metadata updated to the renamed GitHub account gyeomsVibe (was gyeoms-vibe); no functional changes
+
 ## 1.1.1
 - Fixed: dashboard launched from VS Code was killed after 5 seconds (exec timeout → detached spawn)
 - Fixed: Auto Repair now syncs dashboard run state before repairing and reports a clear error when the dashboard server is not running

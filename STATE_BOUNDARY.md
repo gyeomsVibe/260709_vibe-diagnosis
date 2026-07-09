@@ -12,8 +12,8 @@
 |---|---|---|---|---|
 | 1 | **GPT-handoff ZIP** | `GPT-handoff/GYEOMS_260709_vibe-diagnosis_EP_MASTER_ARCHIVE.zip` | 전수분석 **이전** 시점 스냅샷 | sha256: `cabf9a2b...b6c5c` (동봉 .sha256.txt 참조). 히스토리 보존용 — 현재 코드 기준으로 참조 금지 |
 | 2 | **현재 작업 트리** | 이 저장소 루트 | 전수분석 후 15개 이슈 수정 + 메타데이터 리브랜딩 + 이번 패치 큐 적용본 | **유일한 "현재 소스" 기준** |
-| 3 | **GitHub 원격** | `gyeoms-vibe/260709_vibe-diagnosis` `main` | 커밋 `e929a5b`까지 반영 | 이번 패치 큐 커밋은 push 승인 전까지 로컬에만 존재 |
-| 4 | **VSIX 산출물 (구버전)** | `vscode-extension/vibe-diagnosis-vscode-1.1.0.vsix` | **수정 전 버그 코드 포함** (dashboard 5초 종료 버그, publisher=Rejard, 구 repo URL) | ⚠️ 배포 대상에서 제외. 현재 소스 기준 산출물은 `1.1.1.vsix` |
+| 3 | **GitHub 원격** | `gyeomsVibe/260709_vibe-diagnosis` `main` | 로컬과 동기화됨 (계정명 `gyeoms-vibe` → `gyeomsVibe` 변경, SSH 키 승계 확인) | 새 커밋은 push 승인 후 반영 |
+| 4 | **VSIX 산출물 (구버전)** | `vscode-extension/vibe-diagnosis-vscode-1.1.0.vsix` 이하, `1.1.1.vsix` | 1.1.0 이하: **수정 전 버그 코드 포함** (dashboard 5초 종료 버그, publisher=Rejard). 1.1.1: 코드는 최신이나 **구계정(gyeoms-vibe) 메타데이터** | ⚠️ 배포 대상에서 제외. 현재 소스 기준 산출물은 `1.1.2.vsix` (publisher=gyeomsVibe) |
 | 5 | **mcp-server/node_modules** | `mcp-server/node_modules/vibe-diagnosis` | (정리 전) npm registry의 **구버전 1.0.0 코어**가 설치되어 있었음 | `file:..` 로컬 링크로 전환하여 현재 소스 코어를 사용하도록 정리됨 |
 
 ## 판단 규칙

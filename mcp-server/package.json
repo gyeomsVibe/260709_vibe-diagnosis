@@ -18,14 +18,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gyeoms-vibe/260709_vibe-diagnosis.git",
+    "url": "git+https://github.com/gyeomsVibe/260709_vibe-diagnosis.git",
     "directory": "mcp-server"
   },
-  "homepage": "https://github.com/gyeoms-vibe/260709_vibe-diagnosis#readme",
+  "homepage": "https://github.com/gyeomsVibe/260709_vibe-diagnosis#readme",
   "bugs": {
-    "url": "https://github.com/gyeoms-vibe/260709_vibe-diagnosis/issues"
+    "url": "https://github.com/gyeomsVibe/260709_vibe-diagnosis/issues"
   },
-  "author": "gyeoms-vibe <gyeomsvibe@gmail.com>",
+  "author": "gyeomsVibe <yoongyeomkim0515@gmail.com>",
   "contributors": [
     "Rejard <lemaiiisk@gmail.com>"
   ],

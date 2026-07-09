@@ -150,13 +150,13 @@ module.exports = {
 > **GitHub 저장소 생성**: 프로젝트 코드를 먼저 만들고, Rejard님이 직접 GitHub에서 `vibe-diagnosis` 저장소를 생성한 후 push하는 순서로 할까요? 아니면 다른 방식을 선호하시나요?
 
 > [!NOTE]
-> Original planning note referenced Rejard; current maintained repository is [gyeoms-vibe/260709_vibe-diagnosis](https://github.com/gyeoms-vibe/260709_vibe-diagnosis). 위 원문은 기획 히스토리 보존을 위해 그대로 둡니다.
+> Original planning note referenced Rejard; current maintained repository is [gyeomsVibe/260709_vibe-diagnosis](https://github.com/gyeomsVibe/260709_vibe-diagnosis). 위 원문은 기획 히스토리 보존을 위해 그대로 둡니다.
 
 ---
 
 ## Credits
 
 - **Original author (원작자):** Rejard `<lemaiiisk@gmail.com>`
-- **Current maintainer (현재 관리자):** gyeoms-vibe `<gyeomsvibe@gmail.com>`
-- **Repository:** https://github.com/gyeoms-vibe/260709_vibe-diagnosis
+- **Current maintainer (현재 관리자):** gyeomsVibe `<yoongyeomkim0515@gmail.com>`
+- **Repository:** https://github.com/gyeomsVibe/260709_vibe-diagnosis
 - **License:** Apache-2.0

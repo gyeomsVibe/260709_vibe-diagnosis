@@ -207,7 +207,7 @@ export VIBE_DIAG_MODEL=gpt-4o          # 선택사항
 VS Code 확장 마켓플레이스에서 `vibe-diagnosis` 검색, 또는 `.vsix`로 설치:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. `vibe-diagnosis-vscode-1.1.1.vsix` 선택
+2. `vibe-diagnosis-vscode-1.1.2.vsix` 선택
 
 **커맨드:**
 - `Vibe Diagnosis: Run` — 진단 실행
