@@ -1,5 +1,5 @@
 const vscode = require('vscode');
-const { exec, execFile, spawn } = require('child_process');
+const { execFile, spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -19,7 +19,7 @@ function activate(context) {
   statusBarItem.tooltip = 'Run Vibe Diagnosis';
   statusBarItem.show();
 
-  const runCmd = vscode.commands.registerCommand('vibeDiagnosis.run', () => runDiagnostics(false));
+  const runCmd = vscode.commands.registerCommand('vibeDiagnosis.run', () => runDiagnostics(false, false));
   const runJsonCmd = vscode.commands.registerCommand('vibeDiagnosis.runJson', () => runDiagnostics(true));
   const initCmd = vscode.commands.registerCommand('vibeDiagnosis.init', initDiagnostics);
   const dashCmd = vscode.commands.registerCommand('vibeDiagnosis.dashboard', openDashboard);
@@ -32,7 +32,7 @@ function activate(context) {
     const fs = require('fs');
     const diagDir = path.join(workspaceRoot, '.vibe-diagnosis');
     if (fs.existsSync(diagDir)) {
-      runDiagnostics(false);
+      runDiagnostics(false, true);
     }
   }
 }
@@ -49,61 +49,94 @@ function getWorkspaceRoot() {
   return folders[0].uri.fsPath;
 }
 
-// Resolve how to invoke the vibe-diag CLI. Prefers shell-free execFile targets:
+// Resolve how to invoke the vibe-diag CLI. Always shell-free (node + script path).
+// Resolution order:
+// 0) user setting "vibeDiagnosis.cliPath" -> node <cliPath>  (works in ANY project)
 // 1) dev checkout of this repo
 // 2) workspace root 'bin/vibe-diag.js' (local CLI)
 // 3) project-local node_modules 'vibe-diagnosis/bin/vibe-diag.js' install
-// If no local CLI is found, returns null (registry execution is not supported).
+// If none is found, returns null. We never fall back to `npx vibe-diag`, because
+// no npm package of that name exists (the package is "vibe-diagnosis").
 function resolveVibeDiagInvocation(workspaceRoot, cliArgs) {
+  const configured = vscode.workspace.getConfiguration('vibeDiagnosis').get('cliPath');
+  if (typeof configured === 'string' && configured.trim() && fs.existsSync(configured.trim())) {
+    return { file: 'node', args: [configured.trim(), ...cliArgs] };
+  }
+
   try {
     const mainPkg = require('../../package.json');
     if (mainPkg && mainPkg.name === 'vibe-diagnosis') {
-      return { file: 'node', args: [path.resolve(__dirname, '..', '..', 'bin', 'vibe-diag.js'), ...cliArgs], shell: false };
+      return { file: 'node', args: [path.resolve(__dirname, '..', '..', 'bin', 'vibe-diag.js'), ...cliArgs] };
     }
   } catch {}
 
-  const localRepoBin = path.join(workspaceRoot, 'bin', 'vibe-diag.js');
-  if (fs.existsSync(localRepoBin)) {
-    return { file: 'node', args: [localRepoBin, ...cliArgs], shell: false };
-  }
+  if (workspaceRoot) {
+    const localRepoBin = path.join(workspaceRoot, 'bin', 'vibe-diag.js');
+    if (fs.existsSync(localRepoBin)) {
+      return { file: 'node', args: [localRepoBin, ...cliArgs] };
+    }
 
-  const localBin = path.join(workspaceRoot, 'node_modules', 'vibe-diagnosis', 'bin', 'vibe-diag.js');
-  if (fs.existsSync(localBin)) {
-    return { file: 'node', args: [localBin, ...cliArgs], shell: false };
+    const localBin = path.join(workspaceRoot, 'node_modules', 'vibe-diagnosis', 'bin', 'vibe-diag.js');
+    if (fs.existsSync(localBin)) {
+      return { file: 'node', args: [localBin, ...cliArgs] };
+    }
   }
 
   return null;
 }
 
+const CLI_NOT_FOUND_MESSAGE =
+  'vibe-diagnosis CLI를 찾을 수 없습니다. VS Code 설정 "vibeDiagnosis.cliPath"에 bin/vibe-diag.js의 절대 경로를 지정하거나, vibe-diagnosis 저장소에서 실행하세요.';
+
 function runVibeDiag(workspaceRoot, cliArgs, options, callback) {
   const inv = resolveVibeDiagInvocation(workspaceRoot, cliArgs);
   if (!inv) {
-    callback(new Error('vibe-diagnosis local CLI not found. Open the vibe-diagnosis repository or configure MCP/local CLI path.'), '', '');
+    const err = new Error(CLI_NOT_FOUND_MESSAGE);
+    err.code = 'CLI_NOT_FOUND';
+    callback(err, '', '');
     return null;
   }
   return execFile(inv.file, inv.args, { windowsHide: true, ...options }, callback);
 }
 
-function runDiagnostics(jsonMode) {
+function runDiagnostics(jsonMode, isAuto) {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
-    vscode.window.showWarningMessage('Vibe Diagnosis: No workspace folder open.');
+    if (!isAuto) vscode.window.showWarningMessage('Vibe Diagnosis: No workspace folder open.');
     return;
   }
 
   statusBarItem.text = '$(sync~spin) Diagnosing...';
 
   runVibeDiag(workspaceRoot, ['run', '--json', '--cwd', workspaceRoot], { timeout: 30000 }, (error, stdout, stderr) => {
+    // CLI not available (e.g. a project with .vibe-diagnosis/ but no CLI on this
+    // machine). Degrade quietly on auto-run; guide the user only on explicit run.
+    if (error && error.code === 'CLI_NOT_FOUND') {
+      statusBarItem.text = '$(circle-slash) Vibe Diag';
+      statusBarItem.tooltip = CLI_NOT_FOUND_MESSAGE;
+      statusBarItem.backgroundColor = undefined;
+      if (!isAuto) {
+        outputChannel.clear();
+        outputChannel.appendLine(CLI_NOT_FOUND_MESSAGE);
+        outputChannel.show();
+        vscode.window.showWarningMessage('Vibe Diagnosis: ' + CLI_NOT_FOUND_MESSAGE);
+      }
+      return;
+    }
+
     let parsed;
     try {
       parsed = JSON.parse(stdout);
     } catch {
-      outputChannel.clear();
-      outputChannel.appendLine('Failed to parse diagnostic output:');
-      outputChannel.appendLine(stdout || '(empty)');
-      if (stderr) outputChannel.appendLine(stderr);
-      outputChannel.show();
       statusBarItem.text = '$(error) Vibe Diag';
+      statusBarItem.tooltip = 'Vibe Diagnosis: 진단 출력을 해석하지 못했습니다.';
+      if (!isAuto) {
+        outputChannel.clear();
+        outputChannel.appendLine('Failed to parse diagnostic output:');
+        outputChannel.appendLine(stdout || '(empty)');
+        if (stderr) outputChannel.appendLine(stderr);
+        outputChannel.show();
+      }
       return;
     }
 
@@ -334,17 +367,17 @@ function openDashboard() {
   const dashArgs = ['dashboard', '--cwd', workspaceRoot, '--port', String(DASHBOARD_PORT)];
   const inv = resolveVibeDiagInvocation(workspaceRoot, dashArgs);
 
-  if (!inv.shell) {
-    const child = spawn(inv.file, inv.args, {
-      windowsHide: true,
-      detached: true,
-      stdio: 'ignore',
-    });
-    child.unref();
-  } else {
-    // npx fallback: long-running server stays attached to the extension host
-    runVibeDiag(workspaceRoot, dashArgs, {}, () => {});
+  if (!inv) {
+    vscode.window.showWarningMessage('Vibe Diagnosis: ' + CLI_NOT_FOUND_MESSAGE);
+    return;
   }
+
+  const child = spawn(inv.file, inv.args, {
+    windowsHide: true,
+    detached: true,
+    stdio: 'ignore',
+  });
+  child.unref();
 
   vscode.window.showInformationMessage(`Vibe Diagnosis: Dashboard opened at http://localhost:${DASHBOARD_PORT}`);
 }

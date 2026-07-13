@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.1.4
+- Fixed (root cause): removed the `npx vibe-diag` fallback entirely — it caused `npm 404 Not Found (vibe-diag@*)` in any project without a local CLI, because no npm package named `vibe-diag` exists (the package is `vibe-diagnosis`)
+- Added: `vibeDiagnosis.cliPath` setting — point it at an absolute `bin/vibe-diag.js` to run diagnostics in ANY project via `--cwd`
+- Changed: when no CLI is found, auto-run on activation degrades quietly (neutral `$(circle-slash)` status bar) instead of dumping an npm error; explicit Run shows a clear, actionable message
+
 ## 1.1.3
 - Fixed: npx fallback execution command for CLI in non-cached environments (corrected from package-name-only fallback to target executable `vibe-diag` within `vibe-diagnosis` package using `--package=vibe-diagnosis`)
 
