@@ -36,10 +36,10 @@
 
 | 작업 | 이유 | 다음 명령 |
 |---|---|---|
-| GitHub push (2차 큐 커밋) | 패치 큐 원칙상 push 금지 — 사용자 승인 후 진행 | `git push origin main` |
-| VSIX 실설치 검증 | ✅ 부분 완료 (2026-07-10, Phase V) — **Antigravity IDE**(Code-OSS 1.107.0)에서 1.1.2 설치 성공, 설치 ID `gyeomsvibe.vibe-diagnosis-vscode@1.1.2`. **순정 VS Code는 이 머신에 미설치라 미검증** | 순정 VS Code 검증: VS Code 설치 후 `code --install-extension vscode-extension/vibe-diagnosis-vscode-1.1.2.vsix` |
+| GitHub push (2차 큐 커밋) | ✅ 완료 (2026-07-14 사용자 승인 후 push 완료) | `git push origin main` |
+| VSIX 실설치 검증 | ✅ 부분 완료 (2026-07-10, Phase V) — **Antigravity IDE**(Code-OSS 1.107.0)에서 1.1.2 설치 성공. **순정 VS Code는 이 머신에 미설치(CommandNotFound)되어 검증 불가 확인** | 순정 VS Code 검증: VS Code 설치 후 `code --install-extension vscode-extension/vibe-diagnosis-vscode-1.1.4.vsix` |
 | VSIX 기능 동작 검증 (Phase V-2) | ✅ CLI 범위 완료 (2026-07-10) — 설치 파일 무결성(수정판 코드 확인), 커맨드 5종 등록 확인, `run --json` 동작(OK/100%), Auto Repair BYOK 미설정 시 안전 차단("BYOK not configured", 실호출 없음), 대시보드 기동+`/api/run` 정상. **GUI 항목(상태바 Health 표시, Command Palette 실행, 확장 activation)은 미실행** | GUI 검증: Antigravity IDE에서 이 프로젝트 열기 → 상태바 확인 → `Vibe Diagnosis: Run` 실행 |
 | ⚠️ 확장 npx 폴백 결함 (Phase V-2에서 발견) | ✅ 완료 | `vscode-extension/src/extension.js` 내 npx fallback 명령을 `npx -y --package=vibe-diagnosis vibe-diag`로 수정하여 캐시 유무와 무관하게 정상 작동 확인. VSIX 버전을 1.1.3으로 올림. |
 | BYOK 실호출 검증 | 실제 API key 필요 — 금지 조항(키 저장 금지)에 따라 미실행 | 사용자가 대시보드에서 직접 설정 후 Auto Repair 시도 |
 | npm publish | 패키지명이 원작자(Rejard) 계정 소유 — publish 불가/금지 | 재배포하려면 스코프 변경(`@gyeomsvibe/...` — npm 스코프는 소문자만 허용) 결정 필요 |
-| 구 VSIX(1.0.0~1.1.0) 물리 삭제 | 증거 보존 중 (git 미추적) | 사용자 승인 시 삭제 |
+| 구 VSIX(1.0.0~1.1.0) 물리 삭제 | ✅ 완료 (2026-07-14 구버전 1.1.0~1.1.3 삭제 완료, 1.1.4.vsix만 유지) | 사용자 승인 시 삭제 |
