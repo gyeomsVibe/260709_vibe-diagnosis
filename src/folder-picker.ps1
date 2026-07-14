@@ -1,9 +1,12 @@
-﻿# Vibe Clinic - Compile-free modern folder picker
+# Vibe Clinic - Compile-free modern folder picker
 #
 # Opens the Windows 10/11 Explorer-style folder-pick dialog (IFileOpenDialog
 # with FOS_PICKFOLDERS) WITHOUT any runtime C# compilation, by driving the
 # COM interfaces already defined inside System.Windows.Forms via reflection.
 # This avoids Add-Type/csc.exe entirely (antivirus/security-policy safe).
+#
+# ASCII-only on purpose: no non-ASCII characters, so the file parses the same
+# under Windows PowerShell 5.1 (CP949) and PowerShell 7 regardless of BOM.
 #
 # Output contract (stdout):
 #   SELECTED:<absolute path>   when the user picks a folder
@@ -46,7 +49,7 @@ $onBefore.Invoke($dialog, @($vistaDialog))
 
 $ifdType = $createVistaDialog.ReturnType
 $ifdType.GetMethod('SetOptions').Invoke($vistaDialog, @($newFOSEnum))
-$ifdType.GetMethod('SetTitle').Invoke($vistaDialog, @('Vibe Clinic 검증 대상 폴더를 선택하세요'))
+$ifdType.GetMethod('SetTitle').Invoke($vistaDialog, @('Vibe Clinic - Select the target folder to inspect'))
 
 if ($DryRun) {
   Write-Host 'DRYRUN_OK'
@@ -54,8 +57,7 @@ if ($DryRun) {
 }
 
 # 5) Foreground guarantee: own the dialog with an invisible top-most form so
-#    it opens in front instead of behind other windows (Show(IntPtr.Zero)
-#    gives the dialog no owner and it may not receive focus).
+#    it opens in front instead of behind other windows.
 $owner = New-Object System.Windows.Forms.Form
 $owner.TopMost = $true
 $owner.ShowInTaskbar = $false
@@ -66,22 +68,30 @@ $owner.Show()
 $owner.Activate()
 
 try {
+  # IFileDialog.Show is [PreserveSig] -> returns HRESULT (0 = user clicked OK,
+  # non-zero e.g. 0x800704C7 = cancelled). It does not throw on cancel.
   $hr = $ifdType.GetMethod('Show').Invoke($vistaDialog, @($owner.Handle))
 
   if ($hr -eq 0) {
-    # 6) Extract the picked folder path (GetResult -> IShellItem.GetDisplayName)
+    # 6) Extract the picked folder path: GetResult(out IShellItem) then
+    #    IShellItem.GetDisplayName(SIGDN_FILESYSPATH, out string).
     $getResultMethod = $ifdType.GetMethod('GetResult')
-    $shellItemType = $getResultMethod.GetParameters()[0].ParameterType
+    $shellItemRefType = $getResultMethod.GetParameters()[0].ParameterType
+    $shellItemType = if ($shellItemRefType.IsByRef) { $shellItemRefType.GetElementType() } else { $shellItemRefType }
 
     $resultArgs = @($null)
     $getResultMethod.Invoke($vistaDialog, $resultArgs)
     $shellItem = $resultArgs[0]
 
     if ($null -ne $shellItem) {
-      # SIGDN_FILESYSPATH = 0x80058000 per Shell API; the .NET internal enum
-      # uses the same underlying value exposed on the interface signature.
       $getDisplayName = $shellItemType.GetMethod('GetDisplayName')
-      $dnArgs = @([int]0x80028000, $null)
+      # First arg is the SIGDN enum (NOT an int) -> parse by name so the value
+      # and type both match; passing a plain Int32 throws at Invoke.
+      $sigdnType = $getDisplayName.GetParameters()[0].ParameterType
+      if ($sigdnType.IsByRef) { $sigdnType = $sigdnType.GetElementType() }
+      $sigdnFileSysPath = [System.Enum]::Parse($sigdnType, 'SIGDN_FILESYSPATH')
+
+      $dnArgs = @($sigdnFileSysPath, $null)
       $getDisplayName.Invoke($shellItem, $dnArgs)
       $selectedPath = $dnArgs[1]
       if ($selectedPath) {
@@ -89,7 +99,6 @@ try {
       }
     }
   }
-  # Non-zero HRESULT (e.g. 0x800704C7) = user cancelled -> print nothing.
 }
 finally {
   $owner.Close()
