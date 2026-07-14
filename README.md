@@ -215,12 +215,14 @@ Open the dashboard and use the BYOK configuration bar at the top:
 3. Optionally set a **Model** (defaults are provided per provider)
 4. Click **Save** — settings are stored locally in `.vibe-clinic/config.json`
 
-Once configured, ERROR and WARNING diagnostic cards will show an **Auto Repair** button. Click it to automatically fix the issue using your AI provider.
+Once configured, ERROR and WARNING diagnostic cards will show an **Auto Repair** button. It creates an AI repair proposal; review the Diff and explicitly approve it before any file is changed.
 
 ### How Auto Repair works (boundaries)
 
-- Auto Repair uses **whole-file replacement** — the AI returns complete file contents, not partial patches.
-- A `.bak` backup of each file is created **before** any change is written.
+- Auto Repair first creates a **read-only proposal** — no file or backup is written until you click **Approve & Apply**.
+- A proposal is one-time, expires after 10 minutes, and is rejected if its original file changed after preview.
+- Approved repairs use **whole-file replacement** — the AI returns complete file contents, not partial patches.
+- A `.bak` backup of each file is created **only when an approved change is written**.
 - After applying changes, the failing diagnostic is **re-run automatically**.
 - Success is judged **only by the re-run result** (`status === 'OK'`), never by the AI's own claim.
 
@@ -249,14 +251,14 @@ Environment variables take precedence over `config.json` settings.
 Search `vibe-clinic` in VS Code Extensions Marketplace, or install from `.vsix`:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. Select `vibe-clinic-vscode-2.0.0.vsix`
+2. Select `vibe-clinic-vscode-2.0.1.vsix`
 
 **Commands:**
 - `Vibe Clinic: Run` — Run all diagnostics
 - `Vibe Clinic: Init` — Initialize project
 - `Vibe Clinic: Open Dashboard` — Open the workspace dashboard
 - `Vibe Clinic: Open Dashboard for Folder` — Pick any folder with VS Code's native selector
-- `Vibe Clinic: Auto Repair` — AI-powered auto-repair for failing diagnostics
+- `Vibe Clinic: Auto Repair` — Opens the dashboard so you can review and approve a repair proposal
 - Status bar shows health percentage
 
 ---
@@ -380,4 +382,3 @@ Apache License 2.0 — Open, Royalty-Free
 Vibe Clinic modifications are Copyright 2026 gyeomsVibe. The original Vibe Diagnosis work remains Copyright 2025 Rejard.
 
 See [LICENSE](./LICENSE) and [NOTICE](./NOTICE) for details.
-

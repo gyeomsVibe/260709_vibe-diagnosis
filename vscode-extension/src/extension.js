@@ -251,31 +251,13 @@ async function autoRepair() {
 
   if (!selected) return;
 
-  try {
-    const result = await vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: `Vibe Clinic: Repairing ${selected.diagId}...`, cancellable: false },
-      async () => {
-        await postDashboard('/api/run', {});
-        return postDashboard('/api/repair', { diagId: selected.diagId });
-      }
-    );
-
-    outputChannel.clear();
-    outputChannel.appendLine(`Auto Repair Result — ${selected.diagId}`);
-    outputChannel.appendLine('\u2500'.repeat(55));
-    outputChannel.appendLine(typeof result === 'string' ? result : JSON.stringify(result, null, 2));
-    outputChannel.show();
-
-    vscode.window.showInformationMessage(`Vibe Clinic: Repair completed for ${selected.diagId}`);
-  } catch (err) {
-    outputChannel.clear();
-    outputChannel.appendLine(`Auto Repair Failed — ${selected.diagId}`);
-    outputChannel.appendLine('\u2500'.repeat(55));
-    outputChannel.appendLine(err.message || String(err));
-    outputChannel.show();
-
-    vscode.window.showErrorMessage(`Vibe Clinic: Repair failed — ${err.message}`);
-  }
+  launchDashboard(workspaceRoot);
+  outputChannel.clear();
+  outputChannel.appendLine(`Repair review requested — ${selected.diagId}`);
+  outputChannel.appendLine('\u2500'.repeat(55));
+  outputChannel.appendLine('Review the AI repair proposal in the dashboard before applying any file changes.');
+  outputChannel.show();
+  vscode.window.showInformationMessage(`Vibe Clinic: Review the repair proposal for ${selected.diagId} in the dashboard before applying it.`);
 }
 
 function renderResults(parsed, workspaceRoot) {

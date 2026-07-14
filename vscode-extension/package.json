@@ -7,7 +7,7 @@
   },
   "displayName": "Vibe Clinic",
   "description": "Self-diagnosis framework for vibe coding projects — Health monitoring, diagnostics dashboard, and error pattern tracking for AI-assisted development",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "publisher": "gyeomsVibe",
   "license": "Apache-2.0",
   "contributors": [

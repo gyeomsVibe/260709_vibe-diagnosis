@@ -11,6 +11,7 @@ const { discoverDiagnostics, runDiagnostics } = require('../src/runner');
 const { formatResultsJson } = require('../src/reporter');
 const { getResolvedByok, getByokConfig, saveByokConfig } = require('../src/config-manager');
 const { initialize } = require('../src/init');
+const { createRepairProposal, applyRepairProposal } = require('../src/repairer');
 const {
   startDashboard,
   readBody,
@@ -98,6 +99,134 @@ test('dashboard blocks foreign origins and non-directory projects', async () => 
     await new Promise(resolve => server.close(resolve));
     fs.rmSync(temporaryDir, { recursive: true, force: true });
     console.log = originalLog;
+  }
+});
+
+test('dashboard applies a repair only after an approved one-time proposal', async () => {
+  const originalLog = console.log;
+  console.log = () => {};
+  let applyCalls = 0;
+  const temporaryDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-dashboard-repair-'));
+  const diagnosticDir = path.join(temporaryDir, '.vibe-clinic', 'diagnostics');
+  fs.mkdirSync(diagnosticDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(diagnosticDir, 'broken.clinic.js'),
+    `module.exports = { id: 'broken', name: 'Broken', layer: 'TASK', run: async () => ({ status: 'ERROR', details: 'broken' }) };`
+  );
+
+  const server = startDashboard(temporaryDir, 0, {
+    openBrowser: false,
+    createRepairProposal: async (projectDir, diagnostic) => ({
+      success: true,
+      diagId: diagnostic.id,
+      summary: 'Preview only',
+      projectDir,
+      originalFiles: [],
+      repairedFiles: [],
+    }),
+    applyRepairProposal: async (projectDir, proposal) => {
+      applyCalls++;
+      return {
+        success: true,
+        diagId: proposal.diagId,
+        filesModified: [],
+        backupFiles: [],
+        summary: 'Applied after approval',
+        rerunResult: { id: proposal.diagId, status: 'OK' },
+        error: null,
+        originalFiles: proposal.originalFiles,
+        repairedFiles: proposal.repairedFiles,
+      };
+    },
+  });
+
+  try {
+    if (!server.listening) {
+      await new Promise(resolve => server.once('listening', resolve));
+    }
+    const port = server.address().port;
+    await requestDashboard(port, { path: '/api/run', method: 'POST' });
+
+    const proposal = await requestDashboard(port, {
+      path: '/api/repair/propose',
+      method: 'POST',
+      body: { diagId: 'broken' },
+    });
+    assert.strictEqual(proposal.statusCode, 200, JSON.stringify(proposal.body));
+    assert.ok(proposal.body.proposalId);
+    assert.strictEqual(applyCalls, 0);
+
+    const legacyRoute = await requestDashboard(port, {
+      path: '/api/repair',
+      method: 'POST',
+      body: { diagId: 'broken' },
+    });
+    assert.strictEqual(legacyRoute.statusCode, 410);
+    assert.strictEqual(applyCalls, 0);
+
+    const applied = await requestDashboard(port, {
+      path: '/api/repair/apply',
+      method: 'POST',
+      body: { proposalId: proposal.body.proposalId },
+    });
+    assert.strictEqual(applied.statusCode, 200);
+    assert.strictEqual(applied.body.success, true);
+    assert.strictEqual(applyCalls, 1);
+
+    const replay = await requestDashboard(port, {
+      path: '/api/repair/apply',
+      method: 'POST',
+      body: { proposalId: proposal.body.proposalId },
+    });
+    assert.strictEqual(replay.statusCode, 404);
+    assert.strictEqual(applyCalls, 1);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+    fs.rmSync(temporaryDir, { recursive: true, force: true });
+    console.log = originalLog;
+  }
+});
+
+test('repair proposals do not write until approval and reject stale files', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-repair-preview-'));
+  const diagnosticDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+  const sourcePath = path.join(dir, 'app.js');
+  fs.mkdirSync(diagnosticDir, { recursive: true });
+  fs.writeFileSync(sourcePath, 'module.exports = 1;\n');
+  fs.writeFileSync(
+    path.join(diagnosticDir, 'demo.clinic.js'),
+    `module.exports = { id: 'demo', name: 'Demo', layer: 'TASK', run: async () => ({ status: 'OK', details: 'ok' }) };`
+  );
+
+  const diagnostic = { id: 'demo', name: 'Demo', layer: 'TASK', status: 'ERROR', details: 'broken' };
+  const dependencies = {
+    getByok: () => ({ provider: 'test', apiKey: 'test-key', model: 'test-model' }),
+    chat: async () => JSON.stringify({
+      files: [{ path: 'app.js', content: 'module.exports = 2;\n' }],
+      summary: 'Update app export',
+    }),
+  };
+
+  try {
+    const proposal = await createRepairProposal(dir, diagnostic, dependencies);
+    assert.strictEqual(proposal.success, true);
+    assert.strictEqual(fs.readFileSync(sourcePath, 'utf8'), 'module.exports = 1;\n');
+    assert.strictEqual(fs.existsSync(sourcePath + '.bak'), false);
+
+    fs.writeFileSync(sourcePath, 'module.exports = 3;\n');
+    const stale = await applyRepairProposal(dir, proposal);
+    assert.strictEqual(stale.success, false);
+    assert.match(stale.error, /stale/i);
+    assert.strictEqual(fs.readFileSync(sourcePath, 'utf8'), 'module.exports = 3;\n');
+    assert.strictEqual(fs.existsSync(sourcePath + '.bak'), false);
+
+    const freshProposal = await createRepairProposal(dir, diagnostic, dependencies);
+    const applied = await applyRepairProposal(dir, freshProposal);
+    assert.strictEqual(applied.success, true);
+    assert.strictEqual(fs.readFileSync(sourcePath, 'utf8'), 'module.exports = 2;\n');
+    assert.strictEqual(fs.readFileSync(sourcePath + '.bak', 'utf8'), 'module.exports = 3;\n');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 
@@ -301,5 +430,76 @@ test('getByokConfig masks the API key', () => {
     assert.ok(!masked.apiKey.includes('567890'));
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('dashboard handles /api/project/init POST request to initialize current project', async () => {
+  const originalLog = console.log;
+  console.log = () => {};
+  const temporaryDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-dashboard-init-api-'));
+  const server = startDashboard(temporaryDir, 0, { openBrowser: false });
+
+  try {
+    if (!server.listening) {
+      await new Promise(resolve => server.once('listening', resolve));
+    }
+    const port = server.address().port;
+
+    const response = await requestDashboard(port, {
+      path: '/api/project/init',
+      method: 'POST',
+    });
+
+    assert.strictEqual(response.statusCode, 200);
+    assert.strictEqual(response.body.success, true);
+    assert.ok(fs.existsSync(path.join(temporaryDir, '.vibe-clinic', 'diagnostics', 'example.clinic.js')));
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+    fs.rmSync(temporaryDir, { recursive: true, force: true });
+    console.log = originalLog;
+  }
+});
+
+test('dashboard handles /api/project/explain GET request and returns AI explanation', async () => {
+  const originalLog = console.log;
+  console.log = () => {};
+
+  const aiProvider = require('../src/ai-provider');
+  const originalChat = aiProvider.chat;
+
+  aiProvider.chat = async () => {
+    return JSON.stringify({
+      summary: "Mocked project summary",
+      techStack: ["Node.js", "Javascript"],
+      keyFeatures: ["Diagnostic run", "API Explain"],
+      details: "This is a mocked project description for testing purposes."
+    });
+  };
+
+  const temporaryDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-dashboard-explain-api-'));
+  saveByokConfig(temporaryDir, { provider: 'openai', apiKey: 'sk-mock-key', model: 'gpt-4o' });
+
+  const server = startDashboard(temporaryDir, 0, { openBrowser: false });
+
+  try {
+    if (!server.listening) {
+      await new Promise(resolve => server.once('listening', resolve));
+    }
+    const port = server.address().port;
+
+    const response = await requestDashboard(port, {
+      path: '/api/project/explain',
+      method: 'GET',
+    });
+
+    assert.strictEqual(response.statusCode, 200);
+    assert.strictEqual(response.body.success, true);
+    assert.strictEqual(response.body.summary, "Mocked project summary");
+    assert.deepStrictEqual(response.body.techStack, ["Node.js", "Javascript"]);
+  } finally {
+    aiProvider.chat = originalChat;
+    await new Promise(resolve => server.close(resolve));
+    fs.rmSync(temporaryDir, { recursive: true, force: true });
+    console.log = originalLog;
   }
 });

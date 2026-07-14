@@ -32,7 +32,7 @@ const { initialize } = core.init;
 
 const server = new McpServer({
   name: "vibe-clinic",
-  version: "2.0.0",
+  version: "2.0.1",
 });
 
 server.tool(
@@ -326,4 +326,3 @@ server.tool(
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-

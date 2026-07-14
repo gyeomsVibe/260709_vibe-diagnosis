@@ -200,12 +200,14 @@ node ./bin/vibe-clinic.js dashboard --port 8080
 3. **Model** 이름 입력 (예: `gpt-4o-mini`)
 4. **Save** 클릭 — 설정이 `.vibe-clinic/config.json`에 로컬 저장됩니다
 
-설정 완료 후, ERROR/WARNING 진단 카드에 **Auto Repair** 버튼이 표시됩니다. 클릭하면 AI가 자동으로 문제를 분석하고 수리합니다.
+설정 완료 후, ERROR/WARNING 진단 카드에 **Auto Repair** 버튼이 표시됩니다. 클릭하면 AI 수리 제안을 만들고, Diff를 검토해 명시적으로 승인한 뒤에만 파일이 변경됩니다.
 
 ### Auto Repair 동작 경계
 
-- Auto Repair는 **전체 파일 치환** 방식입니다 — AI가 부분 패치가 아닌 파일 전체 내용을 반환합니다.
-- 변경 전 각 파일의 **`.bak` 백업**을 먼저 생성합니다.
+- Auto Repair는 먼저 **읽기 전용 수리 제안**을 만듭니다 — **승인 후 적용** 전에는 파일과 백업이 생성되지 않습니다.
+- 제안은 일회성이며 10분 후 만료됩니다. 미리보기 이후 원본 파일이 바뀌면 적용을 거부합니다.
+- 승인된 Auto Repair는 **전체 파일 치환** 방식입니다 — AI가 부분 패치가 아닌 파일 전체 내용을 반환합니다.
+- 변경이 승인되어 적용될 때에만 각 파일의 **`.bak` 백업**을 생성합니다.
 - 변경 적용 후 해당 진단을 **자동으로 재실행**합니다.
 - 성공 판정은 AI의 주장이 아니라 **재실행 결과(`status === 'OK'`) 기준**입니다.
 
@@ -234,14 +236,14 @@ export VIBE_CLINIC_MODEL=gpt-4o          # 선택사항
 VS Code 확장 마켓플레이스에서 `vibe-clinic` 검색, 또는 `.vsix`로 설치:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. `vibe-clinic-vscode-2.0.0.vsix` 선택
+2. `vibe-clinic-vscode-2.0.1.vsix` 선택
 
 **커맨드:**
 - `Vibe Clinic: Run` — 진단 실행
 - `Vibe Clinic: Init` — 프로젝트 초기화
 - `Vibe Clinic: Open Dashboard` — 현재 워크스페이스 대시보드 열기
 - `Vibe Clinic: Open Dashboard for Folder` — VS Code 네이티브 선택기로 임의 폴더 열기
-- `Vibe Clinic: Auto Repair` — AI 자동 수리 (실패한 진단 선택 → 수리)
+- `Vibe Clinic: Auto Repair` — 대시보드에서 수리 제안을 검토·승인하도록 열기
 - Status Bar에 건강도 퍼센트 표시
 
 ---

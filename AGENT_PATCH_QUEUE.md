@@ -14,7 +14,7 @@
 | VS Code 확장 전환 | ✅ 완료 | `vibe-clinic-vscode` 2.0.0, `vibeClinic.*` 명령 |
 | 로컬 MCP 실행 경로 전환 | ✅ 완료 | 비공개 패키지 npx 호출 제거, 로컬 `mcp-server/index.js` 사용 |
 | 락파일 정합화 | ✅ 완료 | MCP·VS Code package-lock 모두 2.0.0 |
-| 자동 검증 | ✅ 완료 | 단위·통합 테스트 18/18, self 100%, example 3/3, MCP smoke 100% |
+| 자동 검증 | ✅ 완료 | 단위·통합 테스트 20/20, self 100%, example 3/3, MCP smoke 100% |
 | VSIX 재빌드 | ✅ 완료 | `vibe-clinic-vscode-2.0.0.vsix`, 명령·메타데이터·LICENSE·NOTICE 확인 |
 | 구 VSIX 물리 삭제 | ✅ 완료 | 승인 후 `vibe-diagnosis-vscode-1.1.4.vsix` 삭제 |
 | 환경 비밀 파일 보호 | ✅ 로컬 완료 | 실제 `.env` 내용은 읽지 않고 루트 `.gitignore`에 추가, `.env.example`은 추적 가능 유지. 현재 미커밋 |
@@ -26,7 +26,8 @@
 |---|---|---|
 | ② 에러 패턴 실패-매핑 필터링 | ✅ 완료 | 실패 진단 ID에 매핑된 패턴만 노출, 청정 상태 빈 메시지 (`src/dashboard.html`) |
 | ③ 진단 터미널 로그 뷰 | ✅ 완료 | 실패 카드 아코디언 → 터미널 스타일 로그 박스 |
-| ④ AI 치료 코드 디프 뷰어 | ✅ 완료 | `/api/repair`가 originalCode/repairedCode 반환, `computeSimpleDiff` 라인 디프 모달 |
+| ④ AI 치료 코드 디프 뷰어 | ✅ 완료 | 수리 제안의 원본·수정본을 `computeSimpleDiff` 라인 Diff 모달로 표시 |
+| AI 치료 사전 승인 흐름 | ✅ 완료 | 제안은 무변경·일회성·10분 만료, 승인 시에만 `.bak` 생성·적용·재진단. 원본 변경 시 적용 거부 |
 | ① 현대식 폴더 선택기 | ✅ 안정 경로 분리 | `src/folder-picker.ps1` — ASCII 기반 컴파일-프리 IFileOpenDialog 리플렉션, 숨은 owner handle, `-DryRun` 검증. 브라우저에서는 보조 기능이며 직접 경로 입력이 기본 |
 | 폴더 선택기 시행착오 완결 보고 3건 | 📕 SUPERSEDED 표기 완료 | 7-3(STA)·7-3(IFileOpenDialog)·8(fosFlags) 완결 보고는 무효 — 문서 9가 대체. 7-1의 ①항목에도 부분 수정 배너 |
 | VS Code 네이티브 폴더 선택 | ✅ 구현·문법 검증 | `Vibe Clinic: Open Dashboard for Folder` → `vscode.window.showOpenDialog` 사용 |
