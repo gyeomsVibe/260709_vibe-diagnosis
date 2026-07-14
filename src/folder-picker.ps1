@@ -56,10 +56,10 @@ if ($DryRun) {
   exit 0
 }
 
-# 5) Foreground without any visible residue: create an owner window but NEVER
-#    show it. Reading .Handle forces native handle creation without painting a
-#    window, so the dialog still gets a valid owner (and activates in front)
-#    while leaving zero ghost/afterimage even if this process is later killed.
+# 5) Create a hidden owner handle without painting a separate window. This
+#    avoids ghost residue, but Windows foreground policy may still place the
+#    dialog behind the browser. The dashboard therefore treats this picker as
+#    a best-effort helper and keeps direct path input as the stable fallback.
 $owner = New-Object System.Windows.Forms.Form
 $owner.ShowInTaskbar = $false
 $ownerHandle = $owner.Handle

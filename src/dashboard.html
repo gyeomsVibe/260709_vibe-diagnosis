@@ -316,9 +316,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:20p
       <option value="">불러오는 중...</option>
     </select>
     <div class="byok-sep"></div>
-    <button class="btn-save" onclick="selectFolder()" style="background:var(--surface3); border:1px solid var(--border); margin-right:4px;">📁 폴더 선택</button>
-    <input type="text" id="customProjectDir" placeholder="직접 경로 입력 (예: D:\workspace\project)" style="flex: 1;">
+    <input type="text" id="customProjectDir" placeholder="직접 경로 입력 (권장, 예: D:\workspace\project)" style="flex: 1;">
     <button class="btn-save" onclick="changeProjectCustom()">이동</button>
+    <button class="btn-save" onclick="selectFolder()" title="브라우저에서는 창이 뒤에 열릴 수 있는 Windows 보조 기능입니다." style="background:var(--surface3); border:1px solid var(--border); margin-left:4px;">📁 Windows 선택기 (보조)</button>
   </div>
 
   <div class="byok-bar" id="byokBar">
@@ -889,7 +889,7 @@ async function changeProjectCustom() {
 
 async function selectFolder() {
   try {
-    showToast('📂 폴더 선택 대화상자를 여는 중...', 'success');
+    showToast('📂 Windows 보조 선택기를 엽니다. 보이지 않으면 작업 표시줄을 확인하세요.', 'success');
     const res = await fetch(API + '/api/project/select', { method: 'POST' });
     const data = await res.json();
     if (data.success && data.selectedPath) {

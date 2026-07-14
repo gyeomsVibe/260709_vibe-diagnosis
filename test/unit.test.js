@@ -3,14 +3,145 @@ const assert = require('node:assert');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const http = require('http');
+const { Readable } = require('stream');
 
 const { validateDiagnosticModule, validateResult } = require('../src/schema');
 const { discoverDiagnostics, runDiagnostics } = require('../src/runner');
 const { formatResultsJson } = require('../src/reporter');
 const { getResolvedByok, getByokConfig, saveByokConfig } = require('../src/config-manager');
 const { initialize } = require('../src/init');
+const {
+  startDashboard,
+  readBody,
+  isAllowedDashboardOrigin,
+  parseFolderPickerOutput,
+  runFolderPicker,
+  MAX_BODY_BYTES,
+} = require('../src/dashboard');
 
 const CALC_DIR = path.join(__dirname, '..', 'examples', 'calculator');
+
+function requestDashboard(port, requestOptions = {}) {
+  return new Promise((resolve, reject) => {
+    const body = requestOptions.body ? JSON.stringify(requestOptions.body) : null;
+    const headers = { ...(requestOptions.headers || {}) };
+    if (body) {
+      headers['Content-Type'] = 'application/json';
+      headers['Content-Length'] = Buffer.byteLength(body);
+    }
+
+    const request = http.request({
+      hostname: '127.0.0.1',
+      port,
+      path: requestOptions.path || '/',
+      method: requestOptions.method || 'GET',
+      headers,
+    }, response => {
+      let data = '';
+      response.on('data', chunk => { data += chunk; });
+      response.on('end', () => {
+        resolve({
+          statusCode: response.statusCode,
+          body: data ? JSON.parse(data) : null,
+        });
+      });
+    });
+    request.on('error', reject);
+    if (body) request.write(body);
+    request.end();
+  });
+}
+
+test('dashboard accepts only direct or same-origin requests', () => {
+  assert.strictEqual(isAllowedDashboardOrigin(undefined, 7700), true);
+  assert.strictEqual(isAllowedDashboardOrigin('http://localhost:7700', 7700), true);
+  assert.strictEqual(isAllowedDashboardOrigin('http://127.0.0.1:7700', 7700), true);
+  assert.strictEqual(isAllowedDashboardOrigin('https://example.com', 7700), false);
+  assert.strictEqual(isAllowedDashboardOrigin('http://localhost:9999', 7700), false);
+});
+
+test('dashboard blocks foreign origins and non-directory projects', async () => {
+  const originalLog = console.log;
+  console.log = () => {};
+  const server = startDashboard(CALC_DIR, 0, { openBrowser: false });
+  const temporaryDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-dashboard-'));
+  const filePath = path.join(temporaryDir, 'not-a-folder.txt');
+  fs.writeFileSync(filePath, 'x');
+
+  try {
+    if (!server.listening) {
+      await new Promise(resolve => server.once('listening', resolve));
+    }
+    const port = server.address().port;
+
+    const forbidden = await requestDashboard(port, {
+      path: '/api/list',
+      headers: { Origin: 'https://example.com' },
+    });
+    assert.strictEqual(forbidden.statusCode, 403);
+
+    const sameOrigin = await requestDashboard(port, {
+      path: '/api/list',
+      headers: { Origin: `http://localhost:${port}` },
+    });
+    assert.strictEqual(sameOrigin.statusCode, 200);
+
+    const invalidProject = await requestDashboard(port, {
+      path: '/api/project/change',
+      method: 'POST',
+      body: { projectDir: filePath },
+    });
+    assert.strictEqual(invalidProject.statusCode, 400);
+    assert.match(invalidProject.body.error, /폴더가 아닙니다/);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+    fs.rmSync(temporaryDir, { recursive: true, force: true });
+    console.log = originalLog;
+  }
+});
+
+test('dashboard rejects oversized JSON request bodies', async () => {
+  const request = Readable.from([Buffer.alloc(MAX_BODY_BYTES + 1, 'x')]);
+  await assert.rejects(
+    readBody(request),
+    err => err.statusCode === 413 && /too large/i.test(err.message)
+  );
+});
+
+test('folder picker output parser returns only selected paths', () => {
+  assert.strictEqual(parseFolderPickerOutput('SELECTED:C:\\workspace\\app\n'), 'C:\\workspace\\app');
+  assert.strictEqual(parseFolderPickerOutput(''), null);
+  assert.strictEqual(parseFolderPickerOutput('DRYRUN_OK\n'), null);
+});
+
+test('folder picker runner handles selection, cancellation, and errors', async () => {
+  const selected = await runFolderPicker({
+    execFileImpl(file, args, options, callback) {
+      assert.strictEqual(file, 'powershell');
+      assert.ok(args.includes('-STA'));
+      assert.strictEqual(options.windowsHide, true);
+      callback(null, 'SELECTED:C:\\workspace\\app\n', '');
+    },
+  });
+  assert.deepStrictEqual(selected, { success: true, selectedPath: 'C:\\workspace\\app' });
+
+  const cancelled = await runFolderPicker({
+    execFileImpl(file, args, options, callback) {
+      callback(null, '', '');
+    },
+  });
+  assert.deepStrictEqual(cancelled, { success: false, cancelled: true });
+
+  await assert.rejects(
+    runFolderPicker({
+      execFileImpl(file, args, options, callback) {
+        callback(new Error('timeout'), '', 'picker timed out');
+      },
+    }),
+    /picker timed out/
+  );
+});
 
 test('validateDiagnosticModule accepts a well-formed module', () => {
   const mod = { id: 'x', name: 'X', layer: 'TASK', run: async () => ({ status: 'OK' }) };

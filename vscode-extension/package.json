@@ -75,6 +75,10 @@
         "title": "Vibe Clinic: Open Dashboard"
       },
       {
+        "command": "vibeClinic.dashboardForFolder",
+        "title": "Vibe Clinic: Open Dashboard for Folder"
+      },
+      {
         "command": "vibeClinic.repair",
         "title": "Vibe Clinic: Auto Repair"
       }

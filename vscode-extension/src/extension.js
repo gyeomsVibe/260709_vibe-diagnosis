@@ -23,9 +23,10 @@ function activate(context) {
   const runJsonCmd = vscode.commands.registerCommand('vibeClinic.runJson', () => runDiagnostics(true));
   const initCmd = vscode.commands.registerCommand('vibeClinic.init', initDiagnostics);
   const dashCmd = vscode.commands.registerCommand('vibeClinic.dashboard', openDashboard);
+  const dashFolderCmd = vscode.commands.registerCommand('vibeClinic.dashboardForFolder', openDashboardForFolder);
   const repairCmd = vscode.commands.registerCommand('vibeClinic.repair', autoRepair);
 
-  context.subscriptions.push(runCmd, runJsonCmd, initCmd, dashCmd, repairCmd, outputChannel, diagnosticCollection, statusBarItem);
+  context.subscriptions.push(runCmd, runJsonCmd, initCmd, dashCmd, dashFolderCmd, repairCmd, outputChannel, diagnosticCollection, statusBarItem);
 
   const workspaceRoot = getWorkspaceRoot();
   if (workspaceRoot) {
@@ -364,6 +365,23 @@ function openDashboard() {
     return;
   }
 
+  launchDashboard(workspaceRoot);
+}
+
+async function openDashboardForFolder() {
+  const selected = await vscode.window.showOpenDialog({
+    canSelectFiles: false,
+    canSelectFolders: true,
+    canSelectMany: false,
+    openLabel: 'Open Vibe Clinic Dashboard',
+    title: 'Select a folder to inspect with Vibe Clinic',
+  });
+  if (!selected || selected.length === 0) return;
+
+  launchDashboard(selected[0].fsPath);
+}
+
+function launchDashboard(workspaceRoot) {
   const dashArgs = ['dashboard', '--cwd', workspaceRoot, '--port', String(DASHBOARD_PORT)];
   const inv = resolveVibeClinicInvocation(workspaceRoot, dashArgs);
 
