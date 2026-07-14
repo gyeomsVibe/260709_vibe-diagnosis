@@ -59,6 +59,7 @@ async function runDiagnostics(projectDir) {
         layer: 'UNKNOWN',
         status: 'ERROR',
         details: `Failed to load: ${err.message}`,
+        errorMessage: err.stack || err.message,
         duration: Date.now() - startTime,
       });
       continue;
@@ -113,6 +114,7 @@ async function runDiagnostics(projectDir) {
         layer: mod.layer,
         status: 'ERROR',
         details: `Runtime error: ${err.message}`,
+        errorMessage: err.stack || err.message,
         duration: Date.now() - startTime,
       });
     }

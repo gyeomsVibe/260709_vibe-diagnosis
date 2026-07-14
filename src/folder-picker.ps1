@@ -56,21 +56,18 @@ if ($DryRun) {
   exit 0
 }
 
-# 5) Foreground guarantee: own the dialog with an invisible top-most form so
-#    it opens in front instead of behind other windows.
+# 5) Foreground without any visible residue: create an owner window but NEVER
+#    show it. Reading .Handle forces native handle creation without painting a
+#    window, so the dialog still gets a valid owner (and activates in front)
+#    while leaving zero ghost/afterimage even if this process is later killed.
 $owner = New-Object System.Windows.Forms.Form
-$owner.TopMost = $true
 $owner.ShowInTaskbar = $false
-$owner.FormBorderStyle = 'None'
-$owner.StartPosition = 'CenterScreen'
-$owner.Opacity = 0
-$owner.Show()
-$owner.Activate()
+$ownerHandle = $owner.Handle
 
 try {
   # IFileDialog.Show is [PreserveSig] -> returns HRESULT (0 = user clicked OK,
   # non-zero e.g. 0x800704C7 = cancelled). It does not throw on cancel.
-  $hr = $ifdType.GetMethod('Show').Invoke($vistaDialog, @($owner.Handle))
+  $hr = $ifdType.GetMethod('Show').Invoke($vistaDialog, @($ownerHandle))
 
   if ($hr -eq 0) {
     # 6) Extract the picked folder path: GetResult(out IShellItem) then
@@ -101,6 +98,5 @@ try {
   }
 }
 finally {
-  $owner.Close()
   $owner.Dispose()
 }

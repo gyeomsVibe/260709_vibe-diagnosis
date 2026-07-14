@@ -79,6 +79,25 @@ test('runDiagnostics provides ctx.cwd as an alias of ctx.projectDir', async () =
   }
 });
 
+test('runDiagnostics captures a stack trace in errorMessage when a diagnostic throws', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-log-'));
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+  fs.mkdirSync(diagDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(diagDir, 'boom.clinic.js'),
+    `module.exports = { id: 'boom', name: 'Boom', layer: 'TASK', async run() { throw new Error('kaboom'); } };`
+  );
+  try {
+    const results = await runDiagnostics(dir);
+    assert.strictEqual(results[0].status, 'ERROR');
+    assert.ok(results[0].errorMessage, 'errorMessage should be present');
+    assert.ok(/kaboom/.test(results[0].errorMessage));
+    assert.ok(/\bat\b/.test(results[0].errorMessage), 'should include a stack frame');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('runDiagnostics enforces a per-diagnostic timeout', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-timeout-'));
   const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
