@@ -23,7 +23,7 @@ const callMsg = JSON.stringify({
   id: 2,
   method: 'tools/call',
   params: {
-    name: 'run_diagnostics',
+    name: 'run_clinic',
     arguments: {
       projectDir: path.resolve(__dirname, '..', 'examples', 'calculator'),
     },

@@ -102,12 +102,12 @@ async function main() {
   const client = createClient();
   await client.initialize();
 
-  printSection('1. list_diagnostics');
-  const listResult = await client.callTool('list_diagnostics', { projectDir: PROJECT_DIR });
+  printSection('1. list_clinics');
+  const listResult = await client.callTool('list_clinics', { projectDir: PROJECT_DIR });
   printResult(listResult);
 
-  printSection('2. run_diagnostics (self-diagnosis)');
-  const runResult = await client.callTool('run_diagnostics', { projectDir: PROJECT_DIR });
+  printSection('2. run_clinic (self-diagnosis)');
+  const runResult = await client.callTool('run_clinic', { projectDir: PROJECT_DIR });
   printResult(runResult);
 
   printSection('3. read_error_pattern (list all)');
@@ -121,8 +121,8 @@ async function main() {
   });
   printResult(readSpecific);
 
-  printSection('5. run_diagnostics (calculator example)');
-  const calcResult = await client.callTool('run_diagnostics', {
+  printSection('5. run_clinic (calculator example)');
+  const calcResult = await client.callTool('run_clinic', {
     projectDir: path.join(PROJECT_DIR, 'examples', 'calculator'),
   });
   printResult(calcResult);
