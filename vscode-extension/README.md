@@ -10,6 +10,7 @@ Self-diagnosis framework for vibe coding projects.
 - **Run Diagnostics** — Execute all `.clinic.js` files with one command
 - **Auto Repair** — AI-powered auto-repair for failing diagnostics (BYOK)
 - **Open Dashboard** — Visual web dashboard with one-click diagnosis
+- **Native Folder Picker** — Open a dashboard for any folder through VS Code's stable folder selector
 - **Problems Panel** — ERROR/WARNING items appear in VS Code Problems panel
 
 ## Commands
@@ -18,7 +19,8 @@ Self-diagnosis framework for vibe coding projects.
 |---|---|
 | `Vibe Clinic: Run` | Run all diagnostics and show results |
 | `Vibe Clinic: Init` | Initialize .vibe-clinic/ in current project |
-| `Vibe Clinic: Open Dashboard` | Open web dashboard in browser |
+| `Vibe Clinic: Open Dashboard` | Open the current workspace dashboard in browser |
+| `Vibe Clinic: Open Dashboard for Folder` | Pick any folder with VS Code's native selector and open its dashboard |
 | `Vibe Clinic: Auto Repair` | AI-powered auto-repair for failing diagnostics |
 | `Vibe Clinic: Run (JSON)` | Output results as JSON |
 

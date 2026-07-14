@@ -84,8 +84,8 @@ node .\bin\vibe-clinic.js config set apiKey sk-...    # API 키 설정
 node .\bin\vibe-clinic.js config set model gpt-4o     # 모델명 설정
 node .\bin\vibe-clinic.js repair <diagId>             # 특정 진단 AI 자동 수리
 node .\bin\vibe-clinic.js repair --all                # 실패한 모든 진단 자동 수리
-npm run sync:rules                        # 프로젝트 내부 에이전트 규칙 동기화
-npm run sync:rules:global                 # 사용자 전역 Claude 스킬 명시 동기화
+npm run sync:rules                        # 프로젝트 어댑터·로컬 스킬 정합성 검사 (파일 변경 없음)
+npm run sync:rules:global                 # 전체 로컬 스킬을 사용자 전역 Claude 스킬로 명시 복사
 
 # macOS/Linux/Git Bash
 node ./bin/vibe-clinic.js init
@@ -239,7 +239,8 @@ VS Code 확장 마켓플레이스에서 `vibe-clinic` 검색, 또는 `.vsix`로 
 **커맨드:**
 - `Vibe Clinic: Run` — 진단 실행
 - `Vibe Clinic: Init` — 프로젝트 초기화
-- `Vibe Clinic: Open Dashboard` — 대시보드 열기
+- `Vibe Clinic: Open Dashboard` — 현재 워크스페이스 대시보드 열기
+- `Vibe Clinic: Open Dashboard for Folder` — VS Code 네이티브 선택기로 임의 폴더 열기
 - `Vibe Clinic: Auto Repair` — AI 자동 수리 (실패한 진단 선택 → 수리)
 - Status Bar에 건강도 퍼센트 표시
 
@@ -260,7 +261,7 @@ VS Code 확장 마켓플레이스에서 `vibe-clinic` 검색, 또는 `.vsix`로 
 
 ## 🔁 원터치 점검 모드 (VIBE_CHECK_AUTORUN_MODE)
 
-승인 기반 자동 실행 모드입니다. 사용자는 세션을 **한 번만 승인**하고, 에이전트가 **초기화 → 진단 → 최소 수정 → 재진단 → 분리 보고** 루프를 스스로 수행합니다. 규칙은 [.claude/skills/vibe-check/SKILL.md](./.claude/skills/vibe-check/SKILL.md)(Claude Code)와 [GEMINI.md](./GEMINI.md)(Antigravity/Gemini)에 있으며, 두 파일은 같은 트리거를 공유합니다.
+승인 기반 자동 실행 모드입니다. 사용자는 세션을 **한 번만 승인**하고, 에이전트가 **초기화 → 진단 → 최소 수정 → 재진단 → 분리 보고** 루프를 스스로 수행합니다. 전체 절차는 [.claude/skills/vibe-check/SKILL.md](./.claude/skills/vibe-check/SKILL.md)(Claude Code)에 있습니다. [GEMINI.md](./GEMINI.md)는 Antigravity/Gemini용 경량 프로젝트 어댑터이며, 두 파일은 같은 트리거를 공유합니다.
 
 ### 처음 한 번 (세션 일괄 승인)
 

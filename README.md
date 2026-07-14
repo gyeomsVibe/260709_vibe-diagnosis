@@ -99,8 +99,8 @@ node .\bin\vibe-clinic.js config set apiKey sk-...    # Set API key
 node .\bin\vibe-clinic.js config set model gpt-4o     # Set model name
 node .\bin\vibe-clinic.js repair <diagId>             # Auto-repair a specific diagnostic
 node .\bin\vibe-clinic.js repair --all                # Auto-repair all failing diagnostics
-npm run sync:rules                        # Sync project-local agent rules
-npm run sync:rules:global                 # Explicitly sync the user-global Claude skill
+npm run sync:rules                        # Validate the project adapter and local skill (no writes)
+npm run sync:rules:global                 # Explicitly copy the full local skill to the user-global Claude skill
 
 # macOS/Linux/Git Bash
 node ./bin/vibe-clinic.js init
@@ -254,7 +254,8 @@ Search `vibe-clinic` in VS Code Extensions Marketplace, or install from `.vsix`:
 **Commands:**
 - `Vibe Clinic: Run` — Run all diagnostics
 - `Vibe Clinic: Init` — Initialize project
-- `Vibe Clinic: Open Dashboard` — Open web dashboard
+- `Vibe Clinic: Open Dashboard` — Open the workspace dashboard
+- `Vibe Clinic: Open Dashboard for Folder` — Pick any folder with VS Code's native selector
 - `Vibe Clinic: Auto Repair` — AI-powered auto-repair for failing diagnostics
 - Status bar shows health percentage
 
@@ -275,7 +276,7 @@ Search `vibe-clinic` in VS Code Extensions Marketplace, or install from `.vsix`:
 
 ## 🔁 One-Touch Check Mode (VIBE_CHECK_AUTORUN_MODE)
 
-An approval-based autorun mode: you approve the session once, and the agent runs the full **init → diagnose → minimal fix → re-diagnose → report** loop by itself. Rules live in [.claude/skills/vibe-check/SKILL.md](./.claude/skills/vibe-check/SKILL.md) (Claude Code) and [GEMINI.md](./GEMINI.md) (Antigravity/Gemini) — both share the same triggers.
+An approval-based autorun mode: you approve the session once, and the agent runs the full **init → diagnose → minimal fix → re-diagnose → report** loop by itself. The complete procedure lives in [.claude/skills/vibe-check/SKILL.md](./.claude/skills/vibe-check/SKILL.md) (Claude Code). [GEMINI.md](./GEMINI.md) is the lightweight Antigravity/Gemini project adapter; both share the same triggers.
 
 ### First time (one-shot session approval)
 
