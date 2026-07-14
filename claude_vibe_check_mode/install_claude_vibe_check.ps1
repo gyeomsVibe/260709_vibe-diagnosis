@@ -26,6 +26,8 @@ $SkillPath = Join-Path $SkillDir "SKILL.md"
 $ClaudeMdPath = Join-Path $ClaudeDir "CLAUDE.md"
 
 $SourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Split-Path -Parent $SourceRoot
+$McpServerPath = Join-Path $ProjectRoot "mcp-server\index.js"
 $SkillSource = Join-Path $SourceRoot ".claude\skills\vibe-check\SKILL.md"
 $SnippetSource = Join-Path $SourceRoot "global\CLAUDE.md.snippet"
 
@@ -60,8 +62,8 @@ if ($null -ne $claude) {
     $mcpList = ""
   }
 
-  if ($mcpList -notmatch "vibe-diagnosis") {
-    & claude mcp add vibe-diagnosis -- npx -y vibe-diagnosis-mcp
+  if ($mcpList -notmatch "vibe-clinic") {
+    & claude mcp add vibe-clinic -- node $McpServerPath
   }
 } else {
   Write-Host "WARN: Claude Code CLI was not found on PATH. Skill and CLAUDE.md were installed; MCP registration was skipped."

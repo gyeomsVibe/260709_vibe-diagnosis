@@ -57,7 +57,7 @@ function getWorkspaceRoot() {
 // 3) project-local node_modules 'vibe-clinic/bin/vibe-clinic.js' install
 // If none is found, returns null. We never fall back to `npx vibe-clinic`, because
 // no npm package of that name exists (the package is "vibe-clinic").
-function resolveVibeDiagInvocation(workspaceRoot, cliArgs) {
+function resolveVibeClinicInvocation(workspaceRoot, cliArgs) {
   const configured = vscode.workspace.getConfiguration('vibeClinic').get('cliPath');
   if (typeof configured === 'string' && configured.trim() && fs.existsSync(configured.trim())) {
     return { file: 'node', args: [configured.trim(), ...cliArgs] };
@@ -88,8 +88,8 @@ function resolveVibeDiagInvocation(workspaceRoot, cliArgs) {
 const CLI_NOT_FOUND_MESSAGE =
   'vibe-clinic CLI를 찾을 수 없습니다. VS Code 설정 "vibeClinic.cliPath"에 bin/vibe-clinic.js의 절대 경로를 지정하거나, vibe-clinic 저장소에서 실행하세요.';
 
-function runVibeDiag(workspaceRoot, cliArgs, options, callback) {
-  const inv = resolveVibeDiagInvocation(workspaceRoot, cliArgs);
+function runVibeClinic(workspaceRoot, cliArgs, options, callback) {
+  const inv = resolveVibeClinicInvocation(workspaceRoot, cliArgs);
   if (!inv) {
     const err = new Error(CLI_NOT_FOUND_MESSAGE);
     err.code = 'CLI_NOT_FOUND';
@@ -108,7 +108,7 @@ function runDiagnostics(jsonMode, isAuto) {
 
   statusBarItem.text = '$(sync~spin) Diagnosing...';
 
-  runVibeDiag(workspaceRoot, ['run', '--json', '--cwd', workspaceRoot], { timeout: 30000 }, (error, stdout, stderr) => {
+  runVibeClinic(workspaceRoot, ['run', '--json', '--cwd', workspaceRoot], { timeout: 30000 }, (error, stdout, stderr) => {
     // CLI not available (e.g. a project with .vibe-clinic/ but no CLI on this
     // machine). Degrade quietly on auto-run; guide the user only on explicit run.
     if (error && error.code === 'CLI_NOT_FOUND') {
@@ -154,7 +154,7 @@ function runDiagnostics(jsonMode, isAuto) {
 
 function runDiagnosticsAsync(workspaceRoot) {
   return new Promise((resolve, reject) => {
-    runVibeDiag(workspaceRoot, ['run', '--json', '--cwd', workspaceRoot], { timeout: 30000 }, (error, stdout, stderr) => {
+    runVibeClinic(workspaceRoot, ['run', '--json', '--cwd', workspaceRoot], { timeout: 30000 }, (error, stdout, stderr) => {
       try {
         resolve(JSON.parse(stdout));
       } catch {
@@ -343,7 +343,7 @@ function initDiagnostics() {
     return;
   }
 
-  runVibeDiag(workspaceRoot, ['init'], { cwd: workspaceRoot, timeout: 15000 }, (error, stdout, stderr) => {
+  runVibeClinic(workspaceRoot, ['init'], { cwd: workspaceRoot, timeout: 15000 }, (error, stdout, stderr) => {
     outputChannel.clear();
     outputChannel.appendLine(stdout || '');
     if (stderr) outputChannel.appendLine(stderr);
@@ -365,7 +365,7 @@ function openDashboard() {
   }
 
   const dashArgs = ['dashboard', '--cwd', workspaceRoot, '--port', String(DASHBOARD_PORT)];
-  const inv = resolveVibeDiagInvocation(workspaceRoot, dashArgs);
+  const inv = resolveVibeClinicInvocation(workspaceRoot, dashArgs);
 
   if (!inv) {
     vscode.window.showWarningMessage('Vibe Clinic: ' + CLI_NOT_FOUND_MESSAGE);

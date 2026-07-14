@@ -29,8 +29,8 @@ AI 도구의 설정 파일에 아래 JSON을 추가하면 끝입니다.
 {
   "mcpServers": {
     "vibe-clinic": {
-      "command": "npx",
-      "args": ["-y", "vibe-clinic-mcp"]
+      "command": "node",
+      "args": ["<absolute-path-to-repository>/mcp-server/index.js"]
     }
   }
 }
@@ -128,7 +128,7 @@ module.exports = {
 ### 출력 예시
 
 ```
-  Vibe Clinic v1.1.0 — my-project
+  Vibe Clinic v2.0.0 — my-project
   ─────────────────────────────────────────
 
   TASK │ task-001-user-login       │ ✅ OK      │ Login flow verified
@@ -210,9 +210,9 @@ node ./bin/vibe-clinic.js dashboard --port 8080
 CI/CD나 팀 공유 환경에서는 환경변수로 설정할 수도 있습니다:
 
 ```bash
-export VIBE_DIAG_PROVIDER=openai      # openai | anthropic | gemini | openrouter
-export VIBE_DIAG_API_KEY=sk-...
-export VIBE_DIAG_MODEL=gpt-4o          # 선택사항
+export VIBE_CLINIC_PROVIDER=openai      # openai | anthropic | gemini | openrouter
+export VIBE_CLINIC_API_KEY=sk-...
+export VIBE_CLINIC_MODEL=gpt-4o          # 선택사항
 ```
 
 환경변수는 `config.json` 설정보다 우선합니다.
@@ -230,7 +230,7 @@ export VIBE_DIAG_MODEL=gpt-4o          # 선택사항
 VS Code 확장 마켓플레이스에서 `vibe-clinic` 검색, 또는 `.vsix`로 설치:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. `vibe-clinic-vscode-1.1.3.vsix` 선택
+2. `vibe-clinic-vscode-2.0.0.vsix` 선택
 
 **커맨드:**
 - `Vibe Clinic: Run` — 진단 실행

@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "vibe-diagnosis": {
+    "vibe-clinic": {
       "command": "node",
       "args": ["mcp-server/index.js"]
     }

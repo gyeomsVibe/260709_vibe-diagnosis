@@ -32,7 +32,7 @@ const { initialize } = core.init;
 
 const server = new McpServer({
   name: "vibe-clinic",
-  version: "1.1.0",
+  version: "2.0.0",
 });
 
 server.tool(

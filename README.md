@@ -29,8 +29,8 @@ Add the following JSON block to your AI tool's config file:
 {
   "mcpServers": {
     "vibe-clinic": {
-      "command": "npx",
-      "args": ["-y", "vibe-clinic-mcp"]
+      "command": "node",
+      "args": ["<absolute-path-to-repository>/mcp-server/index.js"]
     }
   }
 }
@@ -143,7 +143,7 @@ module.exports = {
 ### Output example
 
 ```
-  Vibe Clinic v1.1.0 — my-project
+  Vibe Clinic v2.0.0 — my-project
   ─────────────────────────────────────────
 
   TASK │ task-001-user-login       │ ✅ OK      │ Login flow verified
@@ -225,9 +225,9 @@ Once configured, ERROR and WARNING diagnostic cards will show an **Auto Repair**
 You can also configure BYOK via environment variables (useful for CI/CD or team-shared setups):
 
 ```bash
-export VIBE_DIAG_PROVIDER=openai      # openai | anthropic | gemini | openrouter
-export VIBE_DIAG_API_KEY=sk-...
-export VIBE_DIAG_MODEL=gpt-4o          # optional, uses provider default
+export VIBE_CLINIC_PROVIDER=openai      # openai | anthropic | gemini | openrouter
+export VIBE_CLINIC_API_KEY=sk-...
+export VIBE_CLINIC_MODEL=gpt-4o          # optional, uses provider default
 ```
 
 Environment variables take precedence over `config.json` settings.
@@ -245,7 +245,7 @@ Environment variables take precedence over `config.json` settings.
 Search `vibe-clinic` in VS Code Extensions Marketplace, or install from `.vsix`:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. Select `vibe-clinic-vscode-1.1.3.vsix`
+2. Select `vibe-clinic-vscode-2.0.0.vsix`
 
 **Commands:**
 - `Vibe Clinic: Run` — Run all diagnostics

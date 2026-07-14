@@ -30,5 +30,4 @@ Self-diagnosis framework for vibe coding projects.
 ## Links
 
 - [GitHub](https://github.com/gyeomsVibe/260709_vibe-clinic)
-- [npm (CLI)](https://www.npmjs.com/package/vibe-clinic)
-- [npm (MCP Server)](https://www.npmjs.com/package/vibe-clinic-mcp)
+- [Issues](https://github.com/gyeomsVibe/260709_vibe-clinic/issues)

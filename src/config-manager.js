@@ -63,9 +63,9 @@ function getByokConfig(projectDir, { maskKey = false } = {}) {
 
 function resolveByokWithEnv(byok) {
   return {
-    provider: process.env.VIBE_DIAG_PROVIDER || byok.provider || '',
-    apiKey: process.env.VIBE_DIAG_API_KEY || byok.apiKey || '',
-    model: process.env.VIBE_DIAG_MODEL || byok.model || '',
+    provider: process.env.VIBE_CLINIC_PROVIDER || byok.provider || '',
+    apiKey: process.env.VIBE_CLINIC_API_KEY || byok.apiKey || '',
+    model: process.env.VIBE_CLINIC_MODEL || byok.model || '',
   };
 }
 

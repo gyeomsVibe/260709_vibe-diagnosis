@@ -4,10 +4,15 @@ const { ensureGitignore } = require('./config-manager');
 
 const TEMPLATE_DIR = path.join(__dirname, '..', 'templates');
 
-const MCP_CONFIG = {
-  command: 'npx',
-  args: ['-y', 'vibe-clinic-mcp'],
-};
+const CLI_PATH = path.join(__dirname, '..', 'bin', 'vibe-clinic.js');
+const MCP_SERVER_PATH = path.join(__dirname, '..', 'mcp-server', 'index.js');
+
+function getMcpConfig() {
+  return {
+    command: process.execPath,
+    args: [MCP_SERVER_PATH],
+  };
+}
 
 function setupGeminiMcp(targetDir) {
   const geminiDir = path.join(targetDir, '.gemini');
@@ -32,7 +37,7 @@ function setupGeminiMcp(targetDir) {
     return false;
   }
 
-  settings.mcpServers['vibe-clinic'] = MCP_CONFIG;
+  settings.mcpServers['vibe-clinic'] = getMcpConfig();
   fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf-8');
   return true;
 }
@@ -89,10 +94,9 @@ function initialize(targetDir) {
   console.log('');
   console.log('  Next steps:');
   console.log('    1. Edit diagnostics/example.clinic.js or create new .clinic.js files');
-  console.log('    2. Run: npx vibe-clinic run');
-  console.log('    3. Configure BYOK in dashboard: npx vibe-clinic dashboard');
+  console.log(`    2. Run: node "${CLI_PATH}" run --cwd "${targetDir}"`);
+  console.log(`    3. Dashboard: node "${CLI_PATH}" dashboard --cwd "${targetDir}"`);
   console.log('');
 }
-
 
 module.exports = { initialize };

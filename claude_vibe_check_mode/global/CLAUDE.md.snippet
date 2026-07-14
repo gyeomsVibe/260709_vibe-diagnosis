@@ -1,6 +1,6 @@
-# Vibe Diagnosis / VIBE_CHECK_CLAUDE_CODE_MODE
+# Vibe Clinic / VIBE_CHECK_CLAUDE_CODE_MODE
 
-이 전역 규칙은 모든 Claude Code 프로젝트에서 `vibe-diagnosis` 기반 원터치 자가진단/교정 모드를 사용하기 위한 지침입니다.
+이 전역 규칙은 모든 Claude Code 프로젝트에서 `vibe-clinic` 기반 원터치 자가진단/교정 모드를 사용하기 위한 지침입니다.
 
 ## 사용자-에이전트 역할
 
@@ -22,12 +22,12 @@
 ## 실행 원칙
 
 1. 프로젝트 루트와 상태 경계를 먼저 확인합니다.
-2. `.vibe-diagnosis`가 없으면 초기화합니다.
+2. `.vibe-clinic`가 없으면 초기화합니다.
 3. 이미 있으면 부족한 설정만 멱등 보강합니다.
 4. 진단을 실행합니다.
 5. 실패는 `1 failure → 1 cause → smallest fix → re-run → report`로 처리합니다.
 6. 통과 위장을 위해 진단 스크립트를 약화하지 않습니다.
-7. 반복 오류는 `.vibe-diagnosis/error-patterns/`에 기록합니다.
+7. 반복 오류는 `.vibe-clinic/error-patterns/`에 기록합니다.
 8. 보고는 6분류로 합니다.
 
 ## 금지

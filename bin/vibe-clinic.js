@@ -89,9 +89,9 @@ async function handleConfig() {
     const byok = getByokConfig(targetDir, { maskKey: true });
     const resolved = getResolvedByok(targetDir);
     const envOverrides = [];
-    if (process.env.VIBE_DIAG_PROVIDER) envOverrides.push('provider');
-    if (process.env.VIBE_DIAG_API_KEY) envOverrides.push('apiKey');
-    if (process.env.VIBE_DIAG_MODEL) envOverrides.push('model');
+    if (process.env.VIBE_CLINIC_PROVIDER) envOverrides.push('provider');
+    if (process.env.VIBE_CLINIC_API_KEY) envOverrides.push('apiKey');
+    if (process.env.VIBE_CLINIC_MODEL) envOverrides.push('model');
 
     console.log(`\n  \x1b[36m🤖 BYOK Configuration\x1b[0m`);
     console.log(`  \x1b[90m${'─'.repeat(40)}\x1b[0m`);

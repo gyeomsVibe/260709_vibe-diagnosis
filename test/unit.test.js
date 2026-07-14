@@ -8,6 +8,7 @@ const { validateDiagnosticModule, validateResult } = require('../src/schema');
 const { discoverDiagnostics, runDiagnostics } = require('../src/runner');
 const { formatResultsJson } = require('../src/reporter');
 const { getResolvedByok, getByokConfig, saveByokConfig } = require('../src/config-manager');
+const { initialize } = require('../src/init');
 
 const CALC_DIR = path.join(__dirname, '..', 'examples', 'calculator');
 
@@ -96,6 +97,22 @@ test('runDiagnostics enforces a per-diagnostic timeout', async () => {
   }
 });
 
+test('initialize creates only Vibe Clinic paths and a local MCP config', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-clinic-init-'));
+  const originalLog = console.log;
+  console.log = () => {};
+  try {
+    initialize(dir);
+    assert.ok(fs.existsSync(path.join(dir, '.vibe-clinic', 'diagnostics', 'example.clinic.js')));
+    assert.ok(!fs.existsSync(path.join(dir, '.vibe-diagnosis')));
+    const settings = JSON.parse(fs.readFileSync(path.join(dir, '.gemini', 'settings.json'), 'utf8'));
+    assert.strictEqual(settings.mcpServers['vibe-clinic'].command, process.execPath);
+    assert.ok(settings.mcpServers['vibe-clinic'].args[0].endsWith(path.join('mcp-server', 'index.js')));
+  } finally {
+    console.log = originalLog;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 test('formatResultsJson computes summary, overall status, and health', () => {
   const json = JSON.parse(formatResultsJson([
     { id: 'a', name: 'A', layer: 'TASK', status: 'OK', details: '' },
@@ -110,8 +127,8 @@ test('formatResultsJson computes summary, overall status, and health', () => {
 
 test('getResolvedByok prefers environment variables over saved config', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-byok-'));
-  const saved = process.env.VIBE_DIAG_PROVIDER;
-  process.env.VIBE_DIAG_PROVIDER = 'openai';
+  const saved = process.env.VIBE_CLINIC_PROVIDER;
+  process.env.VIBE_CLINIC_PROVIDER = 'openai';
   try {
     saveByokConfig(dir, { provider: 'gemini', apiKey: 'k', model: 'm' });
     const resolved = getResolvedByok(dir);
@@ -119,8 +136,8 @@ test('getResolvedByok prefers environment variables over saved config', () => {
     assert.strictEqual(resolved.apiKey, 'k');
     assert.strictEqual(resolved.model, 'm');
   } finally {
-    if (saved === undefined) delete process.env.VIBE_DIAG_PROVIDER;
-    else process.env.VIBE_DIAG_PROVIDER = saved;
+    if (saved === undefined) delete process.env.VIBE_CLINIC_PROVIDER;
+    else process.env.VIBE_CLINIC_PROVIDER = saved;
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });

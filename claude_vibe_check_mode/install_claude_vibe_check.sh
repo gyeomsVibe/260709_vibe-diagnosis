@@ -4,6 +4,8 @@ set -euo pipefail
 RUN_SMOKE_TEST="${RUN_SMOKE_TEST:-1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+MCP_SERVER_PATH="${PROJECT_ROOT}/mcp-server/index.js"
 CLAUDE_DIR="${VIBE_CHECK_TEST_HOME:-$HOME}/.claude"
 SKILL_DIR="${CLAUDE_DIR}/skills/vibe-check"
 SKILL_PATH="${SKILL_DIR}/SKILL.md"
@@ -33,8 +35,8 @@ target.write_text(text, encoding="utf-8")
 PY
 
 if command -v claude >/dev/null 2>&1; then
-  if ! claude mcp list 2>/dev/null | grep -q "vibe-diagnosis"; then
-    claude mcp add vibe-diagnosis -- npx -y vibe-diagnosis-mcp
+  if ! claude mcp list 2>/dev/null | grep -q "vibe-clinic"; then
+    claude mcp add vibe-clinic -- node "${MCP_SERVER_PATH}"
   fi
 else
   echo "WARN: Claude Code CLI not found on PATH. Skill and CLAUDE.md installed; MCP registration skipped."

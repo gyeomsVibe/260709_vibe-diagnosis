@@ -16,7 +16,7 @@
 
 - **Antigravity/Gemini**: 프로젝트 `GEMINI.md`와 등록된 `vibe-clinic` MCP를 사용한다.
 - **Claude Code**: 전역 `vibe-check` skill과 등록된 MCP를 사용한다. 비대화형 `claude -p`가 MCP 승인에서 멈출 수 있으므로, 실제 교정은 대화형 세션에서 수행한다.
-- **Codex**: 전역 `vibe-check` skill과 `vibe_diagnosis` MCP를 사용한다. MCP가 새로 등록됐거나 갱신됐다면 새 Codex 세션에서 로드한다.
+- **Codex**: 전역 `vibe-check` skill과 `vibe_clinic` MCP를 사용한다. MCP가 새로 등록됐거나 갱신됐다면 새 Codex 세션에서 로드한다.
 
 ## 정의
 

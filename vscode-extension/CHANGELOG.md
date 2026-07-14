@@ -1,12 +1,17 @@
 # Change Log
 
+## 2.0.0
+- Breaking: rebranded the extension and all command IDs to Vibe Clinic
+- Breaking: project state now uses `.vibe-clinic/` and `*.clinic.js` exclusively
+- Changed: CLI discovery now targets `bin/vibe-clinic.js` and the `vibeClinic.cliPath` setting
+- Changed: repository metadata now points to `gyeomsVibe/260709_vibe-clinic`
 ## 1.1.4
-- Fixed (root cause): removed the `npx vibe-clinic` fallback entirely — it caused `npm 404 Not Found (vibe-clinic@*)` in any project without a local CLI, because no npm package named `vibe-clinic` exists (the package is `vibe-clinic`)
+- Fixed: removed the registry fallback; the extension now requires an explicit local Vibe Clinic CLI path
 - Added: `vibeClinic.cliPath` setting — point it at an absolute `bin/vibe-clinic.js` to run diagnostics in ANY project via `--cwd`
 - Changed: when no CLI is found, auto-run on activation degrades quietly (neutral `$(circle-slash)` status bar) instead of dumping an npm error; explicit Run shows a clear, actionable message
 
 ## 1.1.3
-- Fixed: npx fallback execution command for CLI in non-cached environments (corrected from package-name-only fallback to target executable `vibe-clinic` within `vibe-clinic` package using `--package=vibe-clinic`)
+- Historical: attempted to correct the registry fallback before local-only execution became the project standard
 
 ## 1.1.2
 - Changed: publisher and repository metadata updated to the renamed GitHub account gyeomsVibe (was gyeoms-vibe); no functional changes
