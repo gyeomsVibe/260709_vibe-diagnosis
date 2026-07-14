@@ -6,7 +6,7 @@ const TEMPLATE_DIR = path.join(__dirname, '..', 'templates');
 
 const MCP_CONFIG = {
   command: 'npx',
-  args: ['-y', 'vibe-diagnosis-mcp'],
+  args: ['-y', 'vibe-clinic-mcp'],
 };
 
 function setupGeminiMcp(targetDir) {
@@ -28,24 +28,24 @@ function setupGeminiMcp(targetDir) {
     settings.mcpServers = {};
   }
 
-  if (settings.mcpServers['vibe-diagnosis']) {
+  if (settings.mcpServers['vibe-clinic']) {
     return false;
   }
 
-  settings.mcpServers['vibe-diagnosis'] = MCP_CONFIG;
+  settings.mcpServers['vibe-clinic'] = MCP_CONFIG;
   fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf-8');
   return true;
 }
 
 function initialize(targetDir) {
-  const diagRoot = path.join(targetDir, '.vibe-diagnosis');
+  const diagRoot = path.join(targetDir, '.vibe-clinic');
   const diagnosticsDir = path.join(diagRoot, 'diagnostics');
   const errorPatternsDir = path.join(diagRoot, 'error-patterns');
 
   if (fs.existsSync(diagRoot)) {
     ensureGitignore(targetDir);
     const mcpEnsured = setupGeminiMcp(targetDir);
-    console.log(`\n  \x1b[33m⚠️  .vibe-diagnosis/ already exists in ${targetDir}\x1b[0m`);
+    console.log(`\n  \x1b[33m⚠️  .vibe-clinic/ already exists in ${targetDir}\x1b[0m`);
     console.log(`  Existing files were not touched.`);
     console.log(`  .gitignore entry ensured${mcpEnsured ? ', MCP config added to .gemini/settings.json' : ', MCP config already present'}.\n`);
     return;
@@ -58,8 +58,8 @@ function initialize(targetDir) {
   const configDest = path.join(diagRoot, 'config.json');
   fs.copyFileSync(configSrc, configDest);
 
-  const exampleSrc = path.join(TEMPLATE_DIR, 'example.diag.js');
-  const exampleDest = path.join(diagnosticsDir, 'example.diag.js');
+  const exampleSrc = path.join(TEMPLATE_DIR, 'example.clinic.js');
+  const exampleDest = path.join(diagnosticsDir, 'example.clinic.js');
   fs.copyFileSync(exampleSrc, exampleDest);
 
   const errorPatternSrc = path.join(TEMPLATE_DIR, 'error-pattern.md');
@@ -70,13 +70,13 @@ function initialize(targetDir) {
 
   const mcpAdded = setupGeminiMcp(targetDir);
 
-  console.log(`\n  \x1b[32m✅ Initialized .vibe-diagnosis/ in ${targetDir}\x1b[0m`);
+  console.log(`\n  \x1b[32m✅ Initialized .vibe-clinic/ in ${targetDir}\x1b[0m`);
   console.log('');
   console.log('  Created:');
-  console.log('    .vibe-diagnosis/');
+  console.log('    .vibe-clinic/');
   console.log('    ├── config.json');
   console.log('    ├── diagnostics/');
-  console.log('    │   └── example.diag.js');
+  console.log('    │   └── example.clinic.js');
   console.log('    └── error-patterns/');
   console.log('        └── ERR_000_template.md');
 
@@ -88,9 +88,9 @@ function initialize(targetDir) {
 
   console.log('');
   console.log('  Next steps:');
-  console.log('    1. Edit diagnostics/example.diag.js or create new .diag.js files');
-  console.log('    2. Run: npx vibe-diag run');
-  console.log('    3. Configure BYOK in dashboard: npx vibe-diag dashboard');
+  console.log('    1. Edit diagnostics/example.clinic.js or create new .clinic.js files');
+  console.log('    2. Run: npx vibe-clinic run');
+  console.log('    3. Configure BYOK in dashboard: npx vibe-clinic dashboard');
   console.log('');
 }
 

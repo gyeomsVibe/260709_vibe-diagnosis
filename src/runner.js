@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { validateDiagnosticModule, validateResult } = require('./schema');
 
-const DIAG_DIR = '.vibe-diagnosis/diagnostics';
-const DIAG_PATTERN = /\.diag\.js$/;
+const DIAG_DIR = '.vibe-clinic/diagnostics';
+const DIAG_PATTERN = /\.clinic\.js$/;
 const DEFAULT_TIMEOUT_MS = 30000;
 
 function withTimeout(promise, ms, diagId) {
@@ -40,7 +40,7 @@ async function runDiagnostics(projectDir) {
       name: 'No Diagnostics Found',
       layer: 'SYSTEM',
       status: 'WARNING',
-      details: `No .diag.js files found in ${DIAG_DIR}/`,
+      details: `No .clinic.js files found in ${DIAG_DIR}/`,
       duration: 0,
     }];
   }
@@ -54,7 +54,7 @@ async function runDiagnostics(projectDir) {
       mod = require(filePath);
     } catch (err) {
       results.push({
-        id: path.basename(filePath, '.diag.js'),
+        id: path.basename(filePath, '.clinic.js'),
         name: path.basename(filePath),
         layer: 'UNKNOWN',
         status: 'ERROR',
@@ -67,7 +67,7 @@ async function runDiagnostics(projectDir) {
     const validation = validateDiagnosticModule(mod, filePath);
     if (!validation.valid) {
       results.push({
-        id: mod.id || path.basename(filePath, '.diag.js'),
+        id: mod.id || path.basename(filePath, '.clinic.js'),
         name: mod.name || path.basename(filePath),
         layer: mod.layer || 'UNKNOWN',
         status: 'ERROR',

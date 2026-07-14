@@ -13,13 +13,13 @@ const CALC_DIR = path.join(__dirname, '..', 'examples', 'calculator');
 
 test('validateDiagnosticModule accepts a well-formed module', () => {
   const mod = { id: 'x', name: 'X', layer: 'TASK', run: async () => ({ status: 'OK' }) };
-  const result = validateDiagnosticModule(mod, 'x.diag.js');
+  const result = validateDiagnosticModule(mod, 'x.clinic.js');
   assert.strictEqual(result.valid, true);
   assert.deepStrictEqual(result.errors, []);
 });
 
 test('validateDiagnosticModule rejects missing fields and bad layer', () => {
-  const result = validateDiagnosticModule({ layer: 'NOPE' }, 'x.diag.js');
+  const result = validateDiagnosticModule({ layer: 'NOPE' }, 'x.clinic.js');
   assert.strictEqual(result.valid, false);
   assert.ok(result.errors.some(e => e.includes('id')));
   assert.ok(result.errors.some(e => e.includes('name')));
@@ -38,7 +38,7 @@ test('validateResult flags null and invalid status, passes valid ones', () => {
 test('discoverDiagnostics finds the calculator example diagnostics', () => {
   const files = discoverDiagnostics(CALC_DIR);
   assert.strictEqual(files.length, 3);
-  assert.ok(files.every(f => f.endsWith('.diag.js')));
+  assert.ok(files.every(f => f.endsWith('.clinic.js')));
 });
 
 test('runDiagnostics returns all-OK for the calculator example', async () => {
@@ -60,10 +60,10 @@ test('runDiagnostics returns a WARNING placeholder when no diagnostics exist', a
 
 test('runDiagnostics provides ctx.cwd as an alias of ctx.projectDir', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-ctx-'));
-  const diagDir = path.join(dir, '.vibe-diagnosis', 'diagnostics');
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
   fs.mkdirSync(diagDir, { recursive: true });
   fs.writeFileSync(
-    path.join(diagDir, 'ctx.diag.js'),
+    path.join(diagDir, 'ctx.clinic.js'),
     `module.exports = { id: 'ctx', name: 'Ctx', layer: 'TASK', run: (ctx) => ({
        status: (ctx.cwd && ctx.cwd === ctx.projectDir) ? 'OK' : 'ERROR',
        details: 'cwd=' + ctx.cwd + ' projectDir=' + ctx.projectDir,
@@ -80,10 +80,10 @@ test('runDiagnostics provides ctx.cwd as an alias of ctx.projectDir', async () =
 
 test('runDiagnostics enforces a per-diagnostic timeout', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-timeout-'));
-  const diagDir = path.join(dir, '.vibe-diagnosis', 'diagnostics');
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
   fs.mkdirSync(diagDir, { recursive: true });
   fs.writeFileSync(
-    path.join(diagDir, 'hang.diag.js'),
+    path.join(diagDir, 'hang.clinic.js'),
     `module.exports = { id: 'hang', name: 'Hang', layer: 'TASK', timeout: 100, run: () => new Promise(() => {}) };`
   );
   try {

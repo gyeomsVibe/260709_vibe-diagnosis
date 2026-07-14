@@ -1,4 +1,4 @@
-# 🩺 vibe-diagnosis
+# 🩺 vibe-clinic
 
 **Self-diagnosis framework for vibe coding projects**
 
@@ -12,7 +12,7 @@ When coding with AI agents, prove that your project works — with code.
 
 ## 🚀 Quick Start (MCP — Easiest)
 
-The fastest way to use vibe-diagnosis is through **MCP** (Model Context Protocol). Just add the config to your AI tool and start coding.
+The fastest way to use vibe-clinic is through **MCP** (Model Context Protocol). Just add the config to your AI tool and start coding.
 
 ### 1. Add MCP config
 
@@ -28,9 +28,9 @@ Add the following JSON block to your AI tool's config file:
 ```json
 {
   "mcpServers": {
-    "vibe-diagnosis": {
+    "vibe-clinic": {
       "command": "npx",
-      "args": ["-y", "vibe-diagnosis-mcp"]
+      "args": ["-y", "vibe-clinic-mcp"]
     }
   }
 }
@@ -38,9 +38,9 @@ Add the following JSON block to your AI tool's config file:
 
 ### 2. Tell your AI agent
 
-> "Apply vibe-diagnosis to this project"
+> "Apply vibe-clinic to this project"
 
-Done. The AI will initialize diagnostics, generate `.diag.js` files, and open the dashboard automatically.
+Done. The AI will initialize diagnostics, generate `.clinic.js` files, and open the dashboard automatically.
 
 ---
 
@@ -52,8 +52,8 @@ Once MCP is installed, just talk to your AI:
 
 | Say this | What happens |
 |---|---|
-| "Apply vibe-diagnosis to this project" | `init_diagnostics` → setup + generate diagnostics + dashboard |
-| "Run diagnostics" | `run_diagnostics` → run all checks |
+| "Apply vibe-clinic to this project" | `init_clinic` → setup + generate diagnostics + dashboard |
+| "Run diagnostics" | `run_clinic` → run all checks |
 | "Open diagnosis dashboard" | `open_dashboard` → browser dashboard |
 | "Write error pattern" | `write_error_pattern` → log error pattern |
 
@@ -61,19 +61,19 @@ Once MCP is installed, just talk to your AI:
 
 | 말하기 | 실행 결과 |
 |---|---|
-| "자가진단 MCP 적용해줘" | `init_diagnostics` → 초기화 + 진단 생성 + 대시보드 |
-| "자가진단 실행해줘" | `run_diagnostics` → 전체 진단 실행 |
+| "자가진단 MCP 적용해줘" | `init_clinic` → 초기화 + 진단 생성 + 대시보드 |
+| "자가진단 실행해줘" | `run_clinic` → 전체 진단 실행 |
 | "대시보드 열어줘" | `open_dashboard` → 브라우저 대시보드 |
-| "진단 돌려줘" | `run_diagnostics` → 결과 요약 |
+| "진단 돌려줘" | `run_clinic` → 결과 요약 |
 
 ### Example Workflow
 
 ```
-You: "Apply vibe-diagnosis to this project"
- AI: → init_diagnostics          ← .vibe-diagnosis/ created
- AI: → generates .diag.js files  ← diagnostics for existing code
+You: "Apply vibe-clinic to this project"
+ AI: → init_clinic          ← .vibe-clinic/ created
+ AI: → generates .clinic.js files  ← diagnostics for existing code
  AI: → open_dashboard            ← browser opens http://localhost:7700
- AI: → run_diagnostics           ← Health 100% ✅
+ AI: → run_clinic           ← Health 100% ✅
 ```
 
 ---
@@ -83,41 +83,41 @@ You: "Apply vibe-diagnosis to this project"
 Run the CLI from the repository root:
 
 > [!IMPORTANT]
-> Running via npm/npx registry package is currently **not** supported/standard as the registry version does not align with the latest repository changes. You must execute from the local repository root via `node ./bin/vibe-diag.js` (or `node .\bin\vibe-diag.js` on Windows).
+> Running via npm/npx registry package is currently **not** supported/standard as the registry version does not align with the latest repository changes. You must execute from the local repository root via `node ./bin/vibe-clinic.js` (or `node .\bin\vibe-clinic.js` on Windows).
 
 ```bash
 # Windows PowerShell
-node .\bin\vibe-diag.js init                        # Initialize .vibe-diagnosis/ + auto-configure MCP
-node .\bin\vibe-diag.js run                         # Run all diagnostics
-node .\bin\vibe-diag.js run --json                  # JSON output (for CI/CD)
-node .\bin\vibe-diag.js dashboard                   # Open web dashboard
-node .\bin\vibe-diag.js config get                  # Show BYOK configuration
-node .\bin\vibe-diag.js config set provider openai  # Set AI provider
-node .\bin\vibe-diag.js config set apiKey sk-...    # Set API key
-node .\bin\vibe-diag.js config set model gpt-4o     # Set model name
-node .\bin\vibe-diag.js repair <diagId>             # Auto-repair a specific diagnostic
-node .\bin\vibe-diag.js repair --all                # Auto-repair all failing diagnostics
+node .\bin\vibe-clinic.js init                        # Initialize .vibe-clinic/ + auto-configure MCP
+node .\bin\vibe-clinic.js run                         # Run all diagnostics
+node .\bin\vibe-clinic.js run --json                  # JSON output (for CI/CD)
+node .\bin\vibe-clinic.js dashboard                   # Open web dashboard
+node .\bin\vibe-clinic.js config get                  # Show BYOK configuration
+node .\bin\vibe-clinic.js config set provider openai  # Set AI provider
+node .\bin\vibe-clinic.js config set apiKey sk-...    # Set API key
+node .\bin\vibe-clinic.js config set model gpt-4o     # Set model name
+node .\bin\vibe-clinic.js repair <diagId>             # Auto-repair a specific diagnostic
+node .\bin\vibe-clinic.js repair --all                # Auto-repair all failing diagnostics
 npm run sync:rules                        # Synchronize GEMINI.md ↔ SKILL.md rules
 
 # macOS/Linux/Git Bash
-node ./bin/vibe-diag.js init
-node ./bin/vibe-diag.js run
-node ./bin/vibe-diag.js run --json
-node ./bin/vibe-diag.js dashboard
-node ./bin/vibe-diag.js config get
-node ./bin/vibe-diag.js config set provider openai
-node ./bin/vibe-diag.js config set apiKey sk-...
-node ./bin/vibe-diag.js config set model gpt-4o
-node ./bin/vibe-diag.js repair <diagId>
-node ./bin/vibe-diag.js repair --all
+node ./bin/vibe-clinic.js init
+node ./bin/vibe-clinic.js run
+node ./bin/vibe-clinic.js run --json
+node ./bin/vibe-clinic.js dashboard
+node ./bin/vibe-clinic.js config get
+node ./bin/vibe-clinic.js config set provider openai
+node ./bin/vibe-clinic.js config set apiKey sk-...
+node ./bin/vibe-clinic.js config set model gpt-4o
+node ./bin/vibe-clinic.js repair <diagId>
+node ./bin/vibe-clinic.js repair --all
 npm run sync:rules
 ```
 
-> **Note on `init`:** In addition to creating `.vibe-diagnosis/`, `init` registers the MCP server by creating or updating `.gemini/settings.json` in your project (adding a `vibe-diagnosis` entry under `mcpServers`). An existing `vibe-diagnosis` entry is left untouched. It also adds `.vibe-diagnosis/config.json` to your `.gitignore`.
+> **Note on `init`:** In addition to creating `.vibe-clinic/`, `init` registers the MCP server by creating or updating `.gemini/settings.json` in your project (adding a `vibe-clinic` entry under `mcpServers`). An existing `vibe-clinic` entry is left untouched. It also adds `.vibe-clinic/config.json` to your `.gitignore`.
 
 ### Writing a diagnostic
 
-Create `.diag.js` files in `.vibe-diagnosis/diagnostics/`:
+Create `.clinic.js` files in `.vibe-clinic/diagnostics/`:
 
 ```js
 module.exports = {
@@ -143,7 +143,7 @@ module.exports = {
 ### Output example
 
 ```
-  Vibe Diagnosis v1.1.0 — my-project
+  Vibe Clinic v1.1.0 — my-project
   ─────────────────────────────────────────
 
   TASK │ task-001-user-login       │ ✅ OK      │ Login flow verified
@@ -161,18 +161,18 @@ module.exports = {
 
 ```bash
 # Windows PowerShell
-node .\bin\vibe-diag.js dashboard            # http://localhost:7700
-node .\bin\vibe-diag.js dashboard --port 8080
+node .\bin\vibe-clinic.js dashboard            # http://localhost:7700
+node .\bin\vibe-clinic.js dashboard --port 8080
 
 # macOS/Linux/Git Bash
-node ./bin/vibe-diag.js dashboard
-node ./bin/vibe-diag.js dashboard --port 8080
+node ./bin/vibe-clinic.js dashboard
+node ./bin/vibe-clinic.js dashboard --port 8080
 ```
 
 The dashboard server binds to `127.0.0.1` only, so it is not exposed to other machines on your network.
 
 > [!TIP]
-> **Dashboard Verified:** Local dashboard execution has been successfully verified under Windows PowerShell environment using `node .\bin\vibe-diag.js dashboard` and API calls on `http://localhost:7700`.
+> **Dashboard Verified:** Local dashboard execution has been successfully verified under Windows PowerShell environment using `node .\bin\vibe-clinic.js dashboard` and API calls on `http://localhost:7700`.
 
 Features:
 - **Korean Localization**: Fully localized UI text and dynamic auto-repair feedback
@@ -209,7 +209,7 @@ Open the dashboard and use the BYOK configuration bar at the top:
 1. Select a **Provider** from the dropdown
 2. Enter your **API Key**
 3. Optionally set a **Model** (defaults are provided per provider)
-4. Click **Save** — settings are stored locally in `.vibe-diagnosis/config.json`
+4. Click **Save** — settings are stored locally in `.vibe-clinic/config.json`
 
 Once configured, ERROR and WARNING diagnostic cards will show an **Auto Repair** button. Click it to automatically fix the issue using your AI provider.
 
@@ -234,7 +234,7 @@ Environment variables take precedence over `config.json` settings.
 
 ### Security
 
-- API keys are stored locally in `.vibe-diagnosis/config.json`
+- API keys are stored locally in `.vibe-clinic/config.json`
 - `config.json` is automatically added to `.gitignore` during `init`
 - Keys are never logged, transmitted to third parties, or included in diagnostics output
 
@@ -242,16 +242,16 @@ Environment variables take precedence over `config.json` settings.
 
 ## 🧩 VS Code Extension
 
-Search `vibe-diagnosis` in VS Code Extensions Marketplace, or install from `.vsix`:
+Search `vibe-clinic` in VS Code Extensions Marketplace, or install from `.vsix`:
 
 1. `Ctrl+Shift+P` → "Install from VSIX..."
-2. Select `vibe-diagnosis-vscode-1.1.3.vsix`
+2. Select `vibe-clinic-vscode-1.1.3.vsix`
 
 **Commands:**
-- `Vibe Diagnosis: Run` — Run all diagnostics
-- `Vibe Diagnosis: Init` — Initialize project
-- `Vibe Diagnosis: Open Dashboard` — Open web dashboard
-- `Vibe Diagnosis: Auto Repair` — AI-powered auto-repair for failing diagnostics
+- `Vibe Clinic: Run` — Run all diagnostics
+- `Vibe Clinic: Init` — Initialize project
+- `Vibe Clinic: Open Dashboard` — Open web dashboard
+- `Vibe Clinic: Auto Repair` — AI-powered auto-repair for failing diagnostics
 - Status bar shows health percentage
 
 ---
@@ -260,9 +260,9 @@ Search `vibe-diagnosis` in VS Code Extensions Marketplace, or install from `.vsi
 
 | Tool | Description |
 |---|---|
-| `run_diagnostics` | Run all diagnostics → JSON results |
-| `init_diagnostics` | Initialize .vibe-diagnosis/ |
-| `list_diagnostics` | List diagnostic files + metadata |
+| `run_clinic` | Run all diagnostics → JSON results |
+| `init_clinic` | Initialize .vibe-clinic/ |
+| `list_clinics` | List diagnostic files + metadata |
 | `read_error_pattern` | Read past error pattern logs |
 | `write_error_pattern` | Record new error patterns |
 | `open_dashboard` | Open web dashboard in browser |
@@ -299,7 +299,7 @@ An approval-based autorun mode: you approve the session once, and the agent runs
     </tr>
     <tr>
       <td align="center">Precise</td>
-      <td align="left">"이 프로젝트를 vibe-diagnosis 기준으로 점검해서 교정해줘. 초기화가 안 되어 있으면 초기화하고, 진단을 실행하고, 실패한 항목만 최소 수정한 뒤, 다시 진단해서 결과를 단계별로 설명해줘."</td>
+      <td align="left">"이 프로젝트를 vibe-clinic 기준으로 점검해서 교정해줘. 초기화가 안 되어 있으면 초기화하고, 진단을 실행하고, 실패한 항목만 최소 수정한 뒤, 다시 진단해서 결과를 단계별로 설명해줘."</td>
     </tr>
   </tbody>
 </table>
@@ -313,10 +313,10 @@ What the agent will **never** do without separate explicit approval: `git push`,
 Add to your project's `.agents/AGENTS.md` or `CLAUDE.md`:
 
 ```markdown
-## Vibe Diagnosis Rules
-- Run `run_diagnostics` after every completed task
+## Vibe Clinic Rules
+- Run `run_clinic` after every completed task
 - Record error patterns with `write_error_pattern`
-- Create a matching .diag.js file for each new task
+- Create a matching .clinic.js file for each new task
 ```
 
 ---
@@ -333,10 +333,10 @@ Add to your project's `.agents/AGENTS.md` or `CLAUDE.md`:
 
 ## Error Patterns
 
-When the agent encounters recurring errors, they are recorded in `.vibe-diagnosis/error-patterns/`:
+When the agent encounters recurring errors, they are recorded in `.vibe-clinic/error-patterns/`:
 
 ```
-.vibe-diagnosis/error-patterns/
+.vibe-clinic/error-patterns/
 └── ERR_001_division_nan.md
 ```
 
@@ -349,7 +349,7 @@ These logs are referenced in future sessions to avoid repeating the same mistake
 For production, remove or gitignore the diagnostics directory:
 
 ```gitignore
-.vibe-diagnosis/
+.vibe-clinic/
 ```
 
 ---

@@ -62,21 +62,21 @@ async function main() {
     }
     default: {
       const pkg = require('../package.json');
-      console.log(`\n  Vibe Diagnosis v${pkg.version}\n`);
+      console.log(`\n  Vibe Clinic v${pkg.version}\n`);
       console.log('  Usage:');
-      console.log('    vibe-diag init                Initialize .vibe-diagnosis/ in current project');
-      console.log('    vibe-diag run                 Run all diagnostics');
-      console.log('    vibe-diag run --json           Output results as JSON');
-      console.log('    vibe-diag dashboard            Open web dashboard (default port 7700)');
-      console.log('    vibe-diag dashboard --port 8080  Use custom port');
-      console.log('    vibe-diag config get           Show current BYOK configuration');
-      console.log('    vibe-diag config set <key> <value>  Set BYOK config (provider, apiKey, model)');
-      console.log('    vibe-diag repair <diagId>      Auto-repair a specific diagnostic with AI');
-      console.log('    vibe-diag repair --all         Auto-repair all failing diagnostics');
+      console.log('    vibe-clinic init                Initialize .vibe-clinic/ in current project');
+      console.log('    vibe-clinic run                 Run all diagnostics');
+      console.log('    vibe-clinic run --json           Output results as JSON');
+      console.log('    vibe-clinic dashboard            Open web dashboard (default port 7700)');
+      console.log('    vibe-clinic dashboard --port 8080  Use custom port');
+      console.log('    vibe-clinic config get           Show current BYOK configuration');
+      console.log('    vibe-clinic config set <key> <value>  Set BYOK config (provider, apiKey, model)');
+      console.log('    vibe-clinic repair <diagId>      Auto-repair a specific diagnostic with AI');
+      console.log('    vibe-clinic repair --all         Auto-repair all failing diagnostics');
       console.log('');
       console.log('  Options:');
       console.log('    --cwd <path>                   Target another project directory');
-      console.log('                                   e.g. vibe-diag run --cwd examples/calculator\n');
+      console.log('                                   e.g. vibe-clinic run --cwd examples/calculator\n');
     }
   }
 }
@@ -117,7 +117,7 @@ async function handleConfig() {
       return;
     }
     if (!value) {
-      console.log(`\n  \x1b[31m❌ Value is required.\x1b[0m Usage: vibe-diag config set ${key} <value>\n`);
+      console.log(`\n  \x1b[31m❌ Value is required.\x1b[0m Usage: vibe-clinic config set ${key} <value>\n`);
       process.exitCode = 1;
       return;
     }
@@ -131,10 +131,10 @@ async function handleConfig() {
   }
 
   console.log('\n  Usage:');
-  console.log('    vibe-diag config get               Show BYOK configuration');
-  console.log('    vibe-diag config set provider <name>  Set provider (openai|anthropic|gemini|openrouter)');
-  console.log('    vibe-diag config set apiKey <key>     Set API key');
-  console.log('    vibe-diag config set model <name>     Set model name\n');
+  console.log('    vibe-clinic config get               Show BYOK configuration');
+  console.log('    vibe-clinic config set provider <name>  Set provider (openai|anthropic|gemini|openrouter)');
+  console.log('    vibe-clinic config set apiKey <key>     Set API key');
+  console.log('    vibe-clinic config set model <name>     Set model name\n');
 }
 
 async function handleRepair() {
@@ -144,8 +144,8 @@ async function handleRepair() {
 
   if (!diagId && !flags.all) {
     console.log('\n  Usage:');
-    console.log('    vibe-diag repair <diagId>    Repair a specific diagnostic');
-    console.log('    vibe-diag repair --all       Repair all failing diagnostics\n');
+    console.log('    vibe-clinic repair <diagId>    Repair a specific diagnostic');
+    console.log('    vibe-clinic repair --all       Repair all failing diagnostics\n');
     return;
   }
 

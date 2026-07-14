@@ -36,12 +36,12 @@ function collectContext(projectDir, diagResult) {
   } catch {}
 
   const diagFiles = discoverDiagnostics(projectDir);
-  const matchingDiag = diagFiles.find(f => path.basename(f, '.diag.js') === diagResult.id);
+  const matchingDiag = diagFiles.find(f => path.basename(f, '.clinic.js') === diagResult.id);
   if (matchingDiag && fs.existsSync(matchingDiag)) {
     ctx.diagSource = fs.readFileSync(matchingDiag, 'utf-8');
   }
 
-  const patternsDir = path.join(projectDir, '.vibe-diagnosis', 'error-patterns');
+  const patternsDir = path.join(projectDir, '.vibe-clinic', 'error-patterns');
   if (fs.existsSync(patternsDir)) {
     const patterns = fs.readdirSync(patternsDir).filter(f => f.endsWith('.md'));
     const matching = patterns.find(f => f.toLowerCase().includes(diagResult.id.toLowerCase()));
@@ -85,7 +85,7 @@ function buildPrompt(ctx) {
   prompt += `- Details: ${ctx.diagnostic.details}\n\n`;
 
   if (ctx.diagSource) {
-    prompt += `DIAGNOSTIC SOURCE CODE (.diag.js):\n\`\`\`javascript\n${ctx.diagSource}\n\`\`\`\n\n`;
+    prompt += `DIAGNOSTIC SOURCE CODE (.clinic.js):\n\`\`\`javascript\n${ctx.diagSource}\n\`\`\`\n\n`;
   }
 
   if (ctx.errorPattern) {

@@ -20,7 +20,7 @@ function listDiagnosticMeta(projectDir) {
       const validation = validateDiagnosticModule(mod, filePath);
       result.push({
         file: path.basename(filePath),
-        id: mod.id || path.basename(filePath, '.diag.js'),
+        id: mod.id || path.basename(filePath, '.clinic.js'),
         name: mod.name || 'Unknown',
         layer: mod.layer || 'UNKNOWN',
         linkedTask: mod.linkedTask || null,
@@ -29,7 +29,7 @@ function listDiagnosticMeta(projectDir) {
     } catch (err) {
       result.push({
         file: path.basename(filePath),
-        id: path.basename(filePath, '.diag.js'),
+        id: path.basename(filePath, '.clinic.js'),
         name: 'Failed to load',
         layer: 'UNKNOWN',
         valid: false,
@@ -41,7 +41,7 @@ function listDiagnosticMeta(projectDir) {
 }
 
 function listErrorPatterns(projectDir) {
-  const patternsDir = path.join(projectDir, '.vibe-diagnosis', 'error-patterns');
+  const patternsDir = path.join(projectDir, '.vibe-clinic', 'error-patterns');
   if (!fs.existsSync(patternsDir)) return [];
   return fs.readdirSync(patternsDir).filter(f => f.endsWith('.md'));
 }
@@ -49,7 +49,7 @@ function listErrorPatterns(projectDir) {
 function readErrorPattern(projectDir, filename) {
   const safeName = path.basename(filename);
   if (safeName !== filename || !safeName.endsWith('.md')) return null;
-  const filePath = path.join(projectDir, '.vibe-diagnosis', 'error-patterns', safeName);
+  const filePath = path.join(projectDir, '.vibe-clinic', 'error-patterns', safeName);
   if (!fs.existsSync(filePath)) return null;
   return fs.readFileSync(filePath, 'utf-8');
 }
@@ -200,7 +200,7 @@ function startDashboard(projectDir, port = 7700) {
 
   server.listen(port, '127.0.0.1', () => {
     const url = `http://localhost:${port}`;
-    console.log(`\n  \x1b[36m🩺 Vibe Diagnosis Dashboard\x1b[0m`);
+    console.log(`\n  \x1b[36m🩺 Vibe Clinic Dashboard\x1b[0m`);
     console.log(`  \x1b[90m${'─'.repeat(40)}\x1b[0m`);
     console.log(`  Running at: \x1b[32m${url}\x1b[0m`);
     console.log(`  Project:    ${projectDir}`);

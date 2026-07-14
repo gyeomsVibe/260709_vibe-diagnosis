@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const CONFIG_FILE = 'config.json';
-const DIAG_ROOT = '.vibe-diagnosis';
+const DIAG_ROOT = '.vibe-clinic';
 
 const DEFAULT_CONFIG = {
   projectName: '',
@@ -76,7 +76,7 @@ function getResolvedByok(projectDir) {
 
 function ensureGitignore(projectDir) {
   const gitignorePath = path.join(projectDir, '.gitignore');
-  const entry = '.vibe-diagnosis/config.json';
+  const entry = '.vibe-clinic/config.json';
 
   let content = '';
   if (fs.existsSync(gitignorePath)) {

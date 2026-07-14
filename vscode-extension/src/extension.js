@@ -11,26 +11,26 @@ let outputChannel;
 let diagnosticCollection;
 
 function activate(context) {
-  outputChannel = vscode.window.createOutputChannel('Vibe Diagnosis');
-  diagnosticCollection = vscode.languages.createDiagnosticCollection('vibe-diagnosis');
+  outputChannel = vscode.window.createOutputChannel('Vibe Clinic');
+  diagnosticCollection = vscode.languages.createDiagnosticCollection('vibe-clinic');
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-  statusBarItem.command = 'vibeDiagnosis.run';
-  statusBarItem.text = '$(heart) Vibe Diag';
-  statusBarItem.tooltip = 'Run Vibe Diagnosis';
+  statusBarItem.command = 'vibeClinic.run';
+  statusBarItem.text = '$(heart) Vibe Clinic';
+  statusBarItem.tooltip = 'Run Vibe Clinic';
   statusBarItem.show();
 
-  const runCmd = vscode.commands.registerCommand('vibeDiagnosis.run', () => runDiagnostics(false, false));
-  const runJsonCmd = vscode.commands.registerCommand('vibeDiagnosis.runJson', () => runDiagnostics(true));
-  const initCmd = vscode.commands.registerCommand('vibeDiagnosis.init', initDiagnostics);
-  const dashCmd = vscode.commands.registerCommand('vibeDiagnosis.dashboard', openDashboard);
-  const repairCmd = vscode.commands.registerCommand('vibeDiagnosis.repair', autoRepair);
+  const runCmd = vscode.commands.registerCommand('vibeClinic.run', () => runDiagnostics(false, false));
+  const runJsonCmd = vscode.commands.registerCommand('vibeClinic.runJson', () => runDiagnostics(true));
+  const initCmd = vscode.commands.registerCommand('vibeClinic.init', initDiagnostics);
+  const dashCmd = vscode.commands.registerCommand('vibeClinic.dashboard', openDashboard);
+  const repairCmd = vscode.commands.registerCommand('vibeClinic.repair', autoRepair);
 
   context.subscriptions.push(runCmd, runJsonCmd, initCmd, dashCmd, repairCmd, outputChannel, diagnosticCollection, statusBarItem);
 
   const workspaceRoot = getWorkspaceRoot();
   if (workspaceRoot) {
     const fs = require('fs');
-    const diagDir = path.join(workspaceRoot, '.vibe-diagnosis');
+    const diagDir = path.join(workspaceRoot, '.vibe-clinic');
     if (fs.existsSync(diagDir)) {
       runDiagnostics(false, true);
     }
@@ -49,34 +49,34 @@ function getWorkspaceRoot() {
   return folders[0].uri.fsPath;
 }
 
-// Resolve how to invoke the vibe-diag CLI. Always shell-free (node + script path).
+// Resolve how to invoke the vibe-clinic CLI. Always shell-free (node + script path).
 // Resolution order:
-// 0) user setting "vibeDiagnosis.cliPath" -> node <cliPath>  (works in ANY project)
+// 0) user setting "vibeClinic.cliPath" -> node <cliPath>  (works in ANY project)
 // 1) dev checkout of this repo
-// 2) workspace root 'bin/vibe-diag.js' (local CLI)
-// 3) project-local node_modules 'vibe-diagnosis/bin/vibe-diag.js' install
-// If none is found, returns null. We never fall back to `npx vibe-diag`, because
-// no npm package of that name exists (the package is "vibe-diagnosis").
+// 2) workspace root 'bin/vibe-clinic.js' (local CLI)
+// 3) project-local node_modules 'vibe-clinic/bin/vibe-clinic.js' install
+// If none is found, returns null. We never fall back to `npx vibe-clinic`, because
+// no npm package of that name exists (the package is "vibe-clinic").
 function resolveVibeDiagInvocation(workspaceRoot, cliArgs) {
-  const configured = vscode.workspace.getConfiguration('vibeDiagnosis').get('cliPath');
+  const configured = vscode.workspace.getConfiguration('vibeClinic').get('cliPath');
   if (typeof configured === 'string' && configured.trim() && fs.existsSync(configured.trim())) {
     return { file: 'node', args: [configured.trim(), ...cliArgs] };
   }
 
   try {
     const mainPkg = require('../../package.json');
-    if (mainPkg && mainPkg.name === 'vibe-diagnosis') {
-      return { file: 'node', args: [path.resolve(__dirname, '..', '..', 'bin', 'vibe-diag.js'), ...cliArgs] };
+    if (mainPkg && mainPkg.name === 'vibe-clinic') {
+      return { file: 'node', args: [path.resolve(__dirname, '..', '..', 'bin', 'vibe-clinic.js'), ...cliArgs] };
     }
   } catch {}
 
   if (workspaceRoot) {
-    const localRepoBin = path.join(workspaceRoot, 'bin', 'vibe-diag.js');
+    const localRepoBin = path.join(workspaceRoot, 'bin', 'vibe-clinic.js');
     if (fs.existsSync(localRepoBin)) {
       return { file: 'node', args: [localRepoBin, ...cliArgs] };
     }
 
-    const localBin = path.join(workspaceRoot, 'node_modules', 'vibe-diagnosis', 'bin', 'vibe-diag.js');
+    const localBin = path.join(workspaceRoot, 'node_modules', 'vibe-clinic', 'bin', 'vibe-clinic.js');
     if (fs.existsSync(localBin)) {
       return { file: 'node', args: [localBin, ...cliArgs] };
     }
@@ -86,7 +86,7 @@ function resolveVibeDiagInvocation(workspaceRoot, cliArgs) {
 }
 
 const CLI_NOT_FOUND_MESSAGE =
-  'vibe-diagnosis CLI를 찾을 수 없습니다. VS Code 설정 "vibeDiagnosis.cliPath"에 bin/vibe-diag.js의 절대 경로를 지정하거나, vibe-diagnosis 저장소에서 실행하세요.';
+  'vibe-clinic CLI를 찾을 수 없습니다. VS Code 설정 "vibeClinic.cliPath"에 bin/vibe-clinic.js의 절대 경로를 지정하거나, vibe-clinic 저장소에서 실행하세요.';
 
 function runVibeDiag(workspaceRoot, cliArgs, options, callback) {
   const inv = resolveVibeDiagInvocation(workspaceRoot, cliArgs);
@@ -102,24 +102,24 @@ function runVibeDiag(workspaceRoot, cliArgs, options, callback) {
 function runDiagnostics(jsonMode, isAuto) {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
-    if (!isAuto) vscode.window.showWarningMessage('Vibe Diagnosis: No workspace folder open.');
+    if (!isAuto) vscode.window.showWarningMessage('Vibe Clinic: No workspace folder open.');
     return;
   }
 
   statusBarItem.text = '$(sync~spin) Diagnosing...';
 
   runVibeDiag(workspaceRoot, ['run', '--json', '--cwd', workspaceRoot], { timeout: 30000 }, (error, stdout, stderr) => {
-    // CLI not available (e.g. a project with .vibe-diagnosis/ but no CLI on this
+    // CLI not available (e.g. a project with .vibe-clinic/ but no CLI on this
     // machine). Degrade quietly on auto-run; guide the user only on explicit run.
     if (error && error.code === 'CLI_NOT_FOUND') {
-      statusBarItem.text = '$(circle-slash) Vibe Diag';
+      statusBarItem.text = '$(circle-slash) Vibe Clinic';
       statusBarItem.tooltip = CLI_NOT_FOUND_MESSAGE;
       statusBarItem.backgroundColor = undefined;
       if (!isAuto) {
         outputChannel.clear();
         outputChannel.appendLine(CLI_NOT_FOUND_MESSAGE);
         outputChannel.show();
-        vscode.window.showWarningMessage('Vibe Diagnosis: ' + CLI_NOT_FOUND_MESSAGE);
+        vscode.window.showWarningMessage('Vibe Clinic: ' + CLI_NOT_FOUND_MESSAGE);
       }
       return;
     }
@@ -128,8 +128,8 @@ function runDiagnostics(jsonMode, isAuto) {
     try {
       parsed = JSON.parse(stdout);
     } catch {
-      statusBarItem.text = '$(error) Vibe Diag';
-      statusBarItem.tooltip = 'Vibe Diagnosis: 진단 출력을 해석하지 못했습니다.';
+      statusBarItem.text = '$(error) Vibe Clinic';
+      statusBarItem.tooltip = 'Vibe Clinic: 진단 출력을 해석하지 못했습니다.';
       if (!isAuto) {
         outputChannel.clear();
         outputChannel.appendLine('Failed to parse diagnostic output:');
@@ -196,7 +196,7 @@ function postDashboard(pathName, payload) {
 
     req.on('error', (err) => {
       if (err.code === 'ECONNREFUSED') {
-        reject(new Error('Dashboard server is not running. Run "Vibe Diagnosis: Open Dashboard" first.'));
+        reject(new Error('Dashboard server is not running. Run "Vibe Clinic: Open Dashboard" first.'));
       } else {
         reject(err);
       }
@@ -209,18 +209,18 @@ function postDashboard(pathName, payload) {
 async function autoRepair() {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
-    vscode.window.showWarningMessage('Vibe Diagnosis: No workspace folder open.');
+    vscode.window.showWarningMessage('Vibe Clinic: No workspace folder open.');
     return;
   }
 
   let parsed;
   try {
     parsed = await vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: 'Vibe Diagnosis: Running diagnostics...' },
+      { location: vscode.ProgressLocation.Notification, title: 'Vibe Clinic: Running diagnostics...' },
       () => runDiagnosticsAsync(workspaceRoot)
     );
   } catch (err) {
-    vscode.window.showErrorMessage(`Vibe Diagnosis: Diagnostics failed — ${err.message}`);
+    vscode.window.showErrorMessage(`Vibe Clinic: Diagnostics failed — ${err.message}`);
     return;
   }
 
@@ -229,7 +229,7 @@ async function autoRepair() {
   );
 
   if (failedItems.length === 0) {
-    vscode.window.showInformationMessage('Vibe Diagnosis: All diagnostics passed. Nothing to repair.');
+    vscode.window.showInformationMessage('Vibe Clinic: All diagnostics passed. Nothing to repair.');
     renderResults(parsed, workspaceRoot);
     return;
   }
@@ -252,7 +252,7 @@ async function autoRepair() {
 
   try {
     const result = await vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: `Vibe Diagnosis: Repairing ${selected.diagId}...`, cancellable: false },
+      { location: vscode.ProgressLocation.Notification, title: `Vibe Clinic: Repairing ${selected.diagId}...`, cancellable: false },
       async () => {
         await postDashboard('/api/run', {});
         return postDashboard('/api/repair', { diagId: selected.diagId });
@@ -265,7 +265,7 @@ async function autoRepair() {
     outputChannel.appendLine(typeof result === 'string' ? result : JSON.stringify(result, null, 2));
     outputChannel.show();
 
-    vscode.window.showInformationMessage(`Vibe Diagnosis: Repair completed for ${selected.diagId}`);
+    vscode.window.showInformationMessage(`Vibe Clinic: Repair completed for ${selected.diagId}`);
   } catch (err) {
     outputChannel.clear();
     outputChannel.appendLine(`Auto Repair Failed — ${selected.diagId}`);
@@ -273,7 +273,7 @@ async function autoRepair() {
     outputChannel.appendLine(err.message || String(err));
     outputChannel.show();
 
-    vscode.window.showErrorMessage(`Vibe Diagnosis: Repair failed — ${err.message}`);
+    vscode.window.showErrorMessage(`Vibe Clinic: Repair failed — ${err.message}`);
   }
 }
 
@@ -284,7 +284,7 @@ function renderResults(parsed, workspaceRoot) {
   const layerLabels = { TASK: 'TASK', FUNCTION: 'FUNC', SYSTEM: 'SYS ' };
 
   outputChannel.appendLine('');
-  outputChannel.appendLine('  Vibe Diagnosis Results');
+  outputChannel.appendLine('  Vibe Clinic Results');
   outputChannel.appendLine('  ' + '\u2500'.repeat(55));
   outputChannel.appendLine('');
 
@@ -306,7 +306,7 @@ function renderResults(parsed, workspaceRoot) {
         `[${r.layer}] ${r.name}: ${r.details}`,
         severity
       );
-      diag.source = 'Vibe Diagnosis';
+      diag.source = 'Vibe Clinic';
       diag.code = r.id;
       vsDiagnostics.push(diag);
     }
@@ -320,7 +320,7 @@ function renderResults(parsed, workspaceRoot) {
   outputChannel.show();
 
   if (vsDiagnostics.length > 0) {
-    const configUri = vscode.Uri.file(path.join(workspaceRoot, '.vibe-diagnosis', 'config.json'));
+    const configUri = vscode.Uri.file(path.join(workspaceRoot, '.vibe-clinic', 'config.json'));
     diagnosticCollection.set(configUri, vsDiagnostics);
   }
 
@@ -339,7 +339,7 @@ function renderResults(parsed, workspaceRoot) {
 function initDiagnostics() {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
-    vscode.window.showWarningMessage('Vibe Diagnosis: No workspace folder open.');
+    vscode.window.showWarningMessage('Vibe Clinic: No workspace folder open.');
     return;
   }
 
@@ -350,9 +350,9 @@ function initDiagnostics() {
     outputChannel.show();
 
     if (!error) {
-      vscode.window.showInformationMessage('Vibe Diagnosis: Initialized .vibe-diagnosis/ successfully!');
+      vscode.window.showInformationMessage('Vibe Clinic: Initialized .vibe-clinic/ successfully!');
     } else {
-      vscode.window.showErrorMessage('Vibe Diagnosis: Init failed. Check output for details.');
+      vscode.window.showErrorMessage('Vibe Clinic: Init failed. Check output for details.');
     }
   });
 }
@@ -360,7 +360,7 @@ function initDiagnostics() {
 function openDashboard() {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
-    vscode.window.showWarningMessage('Vibe Diagnosis: No workspace folder open.');
+    vscode.window.showWarningMessage('Vibe Clinic: No workspace folder open.');
     return;
   }
 
@@ -368,7 +368,7 @@ function openDashboard() {
   const inv = resolveVibeDiagInvocation(workspaceRoot, dashArgs);
 
   if (!inv) {
-    vscode.window.showWarningMessage('Vibe Diagnosis: ' + CLI_NOT_FOUND_MESSAGE);
+    vscode.window.showWarningMessage('Vibe Clinic: ' + CLI_NOT_FOUND_MESSAGE);
     return;
   }
 
@@ -379,7 +379,7 @@ function openDashboard() {
   });
   child.unref();
 
-  vscode.window.showInformationMessage(`Vibe Diagnosis: Dashboard opened at http://localhost:${DASHBOARD_PORT}`);
+  vscode.window.showInformationMessage(`Vibe Clinic: Dashboard opened at http://localhost:${DASHBOARD_PORT}`);
 }
 
 module.exports = { activate, deactivate };

@@ -1,10 +1,10 @@
 {
-  "name": "vibe-diagnosis-mcp",
+  "name": "vibe-clinic-mcp",
   "version": "1.1.0",
-  "description": "MCP server for vibe-diagnosis — AI agents run diagnostics automatically",
+  "description": "MCP server for vibe-clinic — AI agents run diagnostics automatically",
   "type": "module",
   "bin": {
-    "vibe-diagnosis-mcp": "./index.js"
+    "vibe-clinic-mcp": "./index.js"
   },
   "files": [
     "index.js"
@@ -32,7 +32,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "vibe-diagnosis": "file:..",
+    "vibe-clinic": "file:..",
     "zod": "^3.24.0"
   }
 }

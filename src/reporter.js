@@ -37,7 +37,7 @@ function formatResults(results, projectDir) {
   const divider = '\x1b[90m─────────────────────────────────────────────────────────────────\x1b[0m';
 
   lines.push('');
-  lines.push(`  \x1b[1m\x1b[36mVibe Diagnosis v${VERSION}\x1b[0m — \x1b[1m${pkg.name}\x1b[0m`);
+  lines.push(`  \x1b[1m\x1b[36mVibe Clinic v${VERSION}\x1b[0m — \x1b[1m${pkg.name}\x1b[0m`);
   lines.push(`  ${divider}`);
   lines.push('');
 

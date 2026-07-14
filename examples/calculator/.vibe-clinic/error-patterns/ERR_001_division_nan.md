@@ -24,8 +24,8 @@ function divide(a, b) {
 
 ## Prevention
 - Always include a TASK-layer diagnostic that tests division by zero edge cases
-- Use `task-002-division-zero.diag.js` as a reference
+- Use `task-002-division-zero.clinic.js` as a reference
 
 ## Related
 - TASK-002: Division by Zero Handling
-- `task-002-division-zero.diag.js`
+- `task-002-division-zero.clinic.js`

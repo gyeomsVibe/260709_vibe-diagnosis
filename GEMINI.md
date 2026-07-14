@@ -14,14 +14,14 @@
 
 공통 계약은 아래 본문을 따른다. 도구별 차이는 진단 도구를 호출하는 방법뿐이다.
 
-- **Antigravity/Gemini**: 프로젝트 `GEMINI.md`와 등록된 `vibe-diagnosis` MCP를 사용한다.
+- **Antigravity/Gemini**: 프로젝트 `GEMINI.md`와 등록된 `vibe-clinic` MCP를 사용한다.
 - **Claude Code**: 전역 `vibe-check` skill과 등록된 MCP를 사용한다. 비대화형 `claude -p`가 MCP 승인에서 멈출 수 있으므로, 실제 교정은 대화형 세션에서 수행한다.
 - **Codex**: 전역 `vibe-check` skill과 `vibe_diagnosis` MCP를 사용한다. MCP가 새로 등록됐거나 갱신됐다면 새 Codex 세션에서 로드한다.
 
 ## 정의
 
 "원터치"는 **사용자 입력이 한 번**이라는 뜻이지, 내부 검증 단계가 하나라는 뜻이 아니다.
-사용자는 감독(승인만), 에이전트는 작업자(계획→수정→검증→보고), vibe-diagnosis MCP는 검사 도구다.
+사용자는 감독(승인만), 에이전트는 작업자(계획→수정→검증→보고), vibe-clinic MCP는 검사 도구다.
 Antigravity/Gemini 계열은 동일 규칙을 루트 `GEMINI.md`로 사용한다 — 두 파일의 트리거·규칙은 항상 동일하게 유지한다.
 
 ## 승인 구조 (핵심)
@@ -54,20 +54,20 @@ Antigravity/Gemini 계열은 동일 규칙을 루트 `GEMINI.md`로 사용한다
 대신한다(별도 파일 생성은 강요하지 않음).
 
 ### Phase B. 초기화/보강
-1. 프로젝트 루트와 `.vibe-diagnosis/` 존재 여부 확인.
-2. 없으면 **`init_diagnostics`**. 있으면 멱등 보강만 수행됨
+1. 프로젝트 루트와 `.vibe-clinic/` 존재 여부 확인.
+2. 없으면 **`init_clinic`**. 있으면 멱등 보강만 수행됨
    (기존 파일 불변, `.gitignore`/MCP 설정만 보강).
 
 ### Phase C. 진단 실행
-3. **`list_diagnostics`** — 진단 목록과 스키마 유효성 확인.
-4. **`run_diagnostics`** — `overallStatus`와 `healthPercent` 확보.
+3. **`list_clinics`** — 진단 목록과 스키마 유효성 확인.
+4. **`run_clinic`** — `overallStatus`와 `healthPercent` 확보.
 
 ### Phase D. 실패 교정 루프
 5. **실패 분석** — ERROR/WARNING의 `details`로 원인 후보를 2~3개로 좁힌다.
    `read_error_pattern`으로 과거 동일 패턴을 먼저 확인한다.
 6. **최소 수정** — 원칙: **1 failure → 1 cause → smallest fix → re-run → report.**
-   진단 파일(.diag.js)을 약화시켜 통과시키는 것은 금지.
-7. **`run_diagnostics` 재실행** — OK 판정은 재실행 결과 기준.
+   진단 파일(.clinic.js)을 약화시켜 통과시키는 것은 금지.
+7. **`run_clinic` 재실행** — OK 판정은 재실행 결과 기준.
 8. **`write_error_pattern`** — 반복 가능성이 있는 실패면 기록.
    filename은 `ERR_NNN_slug.md` 형식, 경로 구분자 금지.
 9. **`open_dashboard`** — 필요 시 (127.0.0.1 전용).

@@ -12,9 +12,9 @@ const require = createRequire(import.meta.url);
 function loadCore() {
   try {
     return {
-      runner: require("vibe-diagnosis/src/runner"),
-      schema: require("vibe-diagnosis/src/schema"),
-      init: require("vibe-diagnosis/src/init"),
+      runner: require("vibe-clinic/src/runner"),
+      schema: require("vibe-clinic/src/schema"),
+      init: require("vibe-clinic/src/init"),
     };
   } catch {
     return {
@@ -31,15 +31,15 @@ const { validateDiagnosticModule } = core.schema;
 const { initialize } = core.init;
 
 const server = new McpServer({
-  name: "vibe-diagnosis",
+  name: "vibe-clinic",
   version: "1.1.0",
 });
 
 server.tool(
-  "run_diagnostics",
-  "Run all .diag.js diagnostics in the project and return structured results with OK/WARNING/ERROR status and health percentage. Trigger: 자가진단 실행, 진단 돌려줘, run diagnostics",
+  "run_clinic",
+  "Run all .clinic.js diagnostics in the project and return structured results with OK/WARNING/ERROR status and health percentage. Trigger: 자가진단 실행, 진단 돌려줘, run diagnostics",
   {
-    projectDir: z.string().describe("Absolute path to the project root directory containing .vibe-diagnosis/"),
+    projectDir: z.string().describe("Absolute path to the project root directory containing .vibe-clinic/"),
   },
   async ({ projectDir }) => {
     try {
@@ -80,14 +80,14 @@ server.tool(
 );
 
 server.tool(
-  "init_diagnostics",
-  "Initialize .vibe-diagnosis/ directory structure in a project with config, example diagnostic, and error pattern template. Trigger: 자가진단 적용, 자가진단 MCP 적용, 자가진단 초기화, vibe-diagnosis init",
+  "init_clinic",
+  "Initialize .vibe-clinic/ directory structure in a project with config, example diagnostic, and error pattern template. Trigger: 자가진단 적용, 자가진단 MCP 적용, 자가진단 초기화, vibe-clinic init",
   {
     projectDir: z.string().describe("Absolute path to the project root directory"),
   },
   async ({ projectDir }) => {
     try {
-      const diagRoot = path.join(projectDir, ".vibe-diagnosis");
+      const diagRoot = path.join(projectDir, ".vibe-clinic");
       const existed = fs.existsSync(diagRoot);
 
       const origLog = console.log;
@@ -95,8 +95,8 @@ server.tool(
       try { initialize(projectDir); } finally { console.log = origLog; }
 
       const text = existed
-        ? `.vibe-diagnosis/ already exists in ${projectDir} — existing files were not touched. .gitignore entry and MCP config were ensured.`
-        : `Initialized .vibe-diagnosis/ in ${projectDir}\n\nCreated:\n- .vibe-diagnosis/config.json\n- .vibe-diagnosis/diagnostics/example.diag.js\n- .vibe-diagnosis/error-patterns/ERR_000_template.md`;
+        ? `.vibe-clinic/ already exists in ${projectDir} — existing files were not touched. .gitignore entry and MCP config were ensured.`
+        : `Initialized .vibe-clinic/ in ${projectDir}\n\nCreated:\n- .vibe-clinic/config.json\n- .vibe-clinic/diagnostics/example.clinic.js\n- .vibe-clinic/error-patterns/ERR_000_template.md`;
 
       return {
         content: [{ type: "text", text }],
@@ -111,8 +111,8 @@ server.tool(
 );
 
 server.tool(
-  "list_diagnostics",
-  "List all diagnostic files (.diag.js) in the project with their metadata (id, name, layer)",
+  "list_clinics",
+  "List all diagnostic files (.clinic.js) in the project with their metadata (id, name, layer)",
   {
     projectDir: z.string().describe("Absolute path to the project root directory"),
   },
@@ -125,7 +125,7 @@ server.tool(
           content: [
             {
               type: "text",
-              text: "No .diag.js files found in .vibe-diagnosis/diagnostics/",
+              text: "No .clinic.js files found in .vibe-clinic/diagnostics/",
             },
           ],
         };
@@ -139,7 +139,7 @@ server.tool(
           const validation = validateDiagnosticModule(mod, filePath);
           diagnostics.push({
             file: path.basename(filePath),
-            id: mod.id || path.basename(filePath, ".diag.js"),
+            id: mod.id || path.basename(filePath, ".clinic.js"),
             name: mod.name || "Unknown",
             layer: mod.layer || "UNKNOWN",
             linkedTask: mod.linkedTask || null,
@@ -149,7 +149,7 @@ server.tool(
         } catch (err) {
           diagnostics.push({
             file: path.basename(filePath),
-            id: path.basename(filePath, ".diag.js"),
+            id: path.basename(filePath, ".clinic.js"),
             name: "Failed to load",
             layer: "UNKNOWN",
             valid: false,
@@ -172,7 +172,7 @@ server.tool(
 
 server.tool(
   "read_error_pattern",
-  "Read an error pattern log file from .vibe-diagnosis/error-patterns/",
+  "Read an error pattern log file from .vibe-clinic/error-patterns/",
   {
     projectDir: z.string().describe("Absolute path to the project root directory"),
     filename: z
@@ -182,7 +182,7 @@ server.tool(
   },
   async ({ projectDir, filename }) => {
     try {
-      const patternsDir = path.join(projectDir, ".vibe-diagnosis", "error-patterns");
+      const patternsDir = path.join(projectDir, ".vibe-clinic", "error-patterns");
 
       if (!fs.existsSync(patternsDir)) {
         return {
@@ -234,7 +234,7 @@ server.tool(
 
 server.tool(
   "write_error_pattern",
-  "Create or update an error pattern log in .vibe-diagnosis/error-patterns/ to prevent repeating the same mistakes",
+  "Create or update an error pattern log in .vibe-clinic/error-patterns/ to prevent repeating the same mistakes",
   {
     projectDir: z.string().describe("Absolute path to the project root directory"),
     filename: z
@@ -244,7 +244,7 @@ server.tool(
   },
   async ({ projectDir, filename, content }) => {
     try {
-      const patternsDir = path.join(projectDir, ".vibe-diagnosis", "error-patterns");
+      const patternsDir = path.join(projectDir, ".vibe-clinic", "error-patterns");
       fs.mkdirSync(patternsDir, { recursive: true });
 
       const safeName = path.basename(filename);
@@ -278,7 +278,7 @@ server.tool(
 
 server.tool(
   "open_dashboard",
-  "Open the Vibe Diagnosis web dashboard in the browser. Shows all diagnostics as visual cards with a Run button for one-click verification. Trigger: 대시보드 열어줘, 자가진단 대시보드, dashboard",
+  "Open the Vibe Clinic web dashboard in the browser. Shows all diagnostics as visual cards with a Run button for one-click verification. Trigger: 대시보드 열어줘, 자가진단 대시보드, dashboard",
   {
     projectDir: z.string().describe("Absolute path to the project root directory"),
     port: z.number().optional().describe("Port number (default: 7700)"),
@@ -290,13 +290,13 @@ server.tool(
 
       let vibeDiagBin;
       try {
-        vibeDiagBin = require.resolve("vibe-diagnosis/bin/vibe-diag.js");
+        vibeDiagBin = require.resolve("vibe-clinic/bin/vibe-clinic.js");
       } catch {
         vibeDiagBin = path.resolve(
           path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1")),
           "..",
           "bin",
-          "vibe-diag.js"
+          "vibe-clinic.js"
         );
       }
 

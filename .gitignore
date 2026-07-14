@@ -2,5 +2,5 @@ node_modules/
 .DS_Store
 *.log
 *.vsix
-.vibe-diagnosis/config.json
+.vibe-clinic/config.json
 claude_vibe_check_mode_package.zip

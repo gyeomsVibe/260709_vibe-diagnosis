@@ -1,11 +1,12 @@
 {
-  "name": "vibe-diagnosis",
+  "name": "vibe-clinic",
   "private": true,
   "version": "1.1.0",
   "description": "Self-diagnosis framework for vibe coding projects",
   "main": "src/runner.js",
   "bin": {
-    "vibe-diag": "bin/vibe-diag.js"
+    "vibe-clinic": "bin/vibe-clinic.js",
+    "vbc": "bin/vibe-clinic.js"
   },
   "files": [
     "bin/",
@@ -15,8 +16,8 @@
   ],
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
-    "test:self": "node bin/vibe-diag.js run",
-    "test:example": "node bin/vibe-diag.js run --cwd examples/calculator",
+    "test:self": "node bin/vibe-clinic.js run",
+    "test:example": "node bin/vibe-clinic.js run --cwd examples/calculator",
     "sync:rules": "node bin/sync-rules.js",
     "publish": "echo 'Error: Public publishing is strictly prohibited.' && exit 1"
   },
