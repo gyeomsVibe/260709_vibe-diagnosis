@@ -9,40 +9,61 @@ const geminiMdPath = path.join(rootDir, 'GEMINI.md');
 const localSkillPath = path.join(rootDir, '.claude', 'skills', 'vibe-check', 'SKILL.md');
 const globalSkillPath = path.join(os.homedir(), '.claude', 'skills', 'vibe-check', 'SKILL.md');
 const syncGlobal = process.argv.includes('--global');
+const requiredTriggers = [
+  '이 프로젝트 점검해서 교정해줘',
+  '원터치 점검해줘',
+  'vibe-check 해줘',
+  '자가진단 MCP 적용해줘',
+  '진단 돌리고 실패한 것 고쳐줘',
+];
 
-function getFrontmatter(filePath) {
-  if (!fs.existsSync(filePath)) return '';
-  const content = fs.readFileSync(filePath, 'utf-8');
-  const match = content.match(/^---[\s\S]*?---/);
-  return match ? match[0] : '';
+function readRequiredFile(filePath, label) {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`${label} not found: ${filePath}`);
+  }
+  return fs.readFileSync(filePath, 'utf-8');
+}
+
+function validateTriggerAlignment() {
+  const geminiContent = readRequiredFile(geminiMdPath, 'GEMINI.md');
+  const localSkillContent = readRequiredFile(localSkillPath, 'Local vibe-check skill');
+
+  if (!geminiContent.includes('Project-scoped adapter')) {
+    throw new Error('GEMINI.md must remain a project-scoped adapter');
+  }
+  if (!/^---[\s\S]*?name:\s*vibe-check[\s\S]*?---/.test(localSkillContent)) {
+    throw new Error('Local vibe-check skill frontmatter is invalid');
+  }
+
+  for (const trigger of requiredTriggers) {
+    if (!geminiContent.includes(trigger)) {
+      throw new Error(`GEMINI.md is missing trigger: ${trigger}`);
+    }
+    if (!localSkillContent.includes(trigger)) {
+      throw new Error(`Local vibe-check skill is missing trigger: ${trigger}`);
+    }
+  }
+
+  return localSkillContent;
 }
 
 function sync() {
-  if (!fs.existsSync(geminiMdPath)) {
-    console.error('Error: GEMINI.md not found');
+  try {
+    const localSkillContent = validateTriggerAlignment();
+    console.log('✅ Project adapter and local vibe-check skill are aligned.');
+
+    if (!syncGlobal) {
+      console.log('ℹ️ Validation only: no files were changed. Use --global for explicit global skill synchronization.');
+      return;
+    }
+
+    fs.mkdirSync(path.dirname(globalSkillPath), { recursive: true });
+    fs.writeFileSync(globalSkillPath, localSkillContent, 'utf-8');
+    console.log(`✅ Synchronized global Claude skill: ${globalSkillPath}`);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
     process.exit(1);
   }
-
-  const geminiContent = fs.readFileSync(geminiMdPath, 'utf-8');
-  const bodyRules = geminiContent.replace(/^---[\s\S]*?---/, '').trim();
-  const localFrontmatter = getFrontmatter(localSkillPath) || `---
-name: vibe-check
-description: 승인 기반 원터치 자가진단 점검 모드(VIBE_CHECK_AUTORUN_MODE). "이 프로젝트 점검해서 교정해줘", "원터치 점검해줘", "vibe-check 해줘", "자가진단 MCP 적용해줘", "진단 돌리고 실패한 것 고쳐줘" 요청 시 사용. 사용자는 큰 승인만 하고, 에이전트가 상태 분리 → 진단 → 최소 수정 → 재진단 → 분리 보고까지 자동 수행한다.
----`;
-  const skillContent = `${localFrontmatter}\n\n${bodyRules}\n`;
-
-  fs.mkdirSync(path.dirname(localSkillPath), { recursive: true });
-  fs.writeFileSync(localSkillPath, skillContent, 'utf-8');
-  console.log(`✅ Synchronized local skill rules: ${localSkillPath}`);
-
-  if (!syncGlobal) {
-    console.log('ℹ️ Global Claude skill was not changed. Use --global for explicit synchronization.');
-    return;
-  }
-
-  fs.mkdirSync(path.dirname(globalSkillPath), { recursive: true });
-  fs.writeFileSync(globalSkillPath, skillContent, 'utf-8');
-  console.log(`✅ Synchronized global skill rules: ${globalSkillPath}`);
 }
 
 sync();
