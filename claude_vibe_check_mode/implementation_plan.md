@@ -7,7 +7,7 @@
 ## User Review Required
 > [!IMPORTANT]
 > - **Claude 글로벌 스킬 경로 설정**: Claude 글로벌 스킬 디렉토리인 `C:/Users/Kimyoongyeom/.claude/skills` 하위에 `vibe-check` 폴더를 생성하고 `SKILL.md`를 설치할 것입니다.
-> - **로컬 MCP 등록**: 외부 npm 배포본(npx vibe-diagnosis-mcp) 대신, 현재 수정한 최신 코드가 즉시 반영되도록 **로컬 index.js**를 절대 경로로 지정하여 `claude mcp add`로 등록하겠습니다.
+> - **로컬 MCP 등록**: 외부 npm 배포본(npx vibe-clinic-mcp) 대신, 현재 수정한 최신 코드가 즉시 반영되도록 **로컬 index.js**를 절대 경로로 지정하여 `claude mcp add`로 등록하겠습니다.
 > - **절대 금지사항**: 규칙에 명시된 대로 `git push`, `npm publish`, `GitHub release`, `Render 배포`, `실제 API Key 요청/저장`은 일절 배제한 채 dry-run 및 로컬 검증만 수행합니다.
 
 ---
@@ -21,9 +21,9 @@
 
 ### 2. Claude Code 로컬 MCP 서버 등록 및 검증
 - **명령 실행**:
-  - `claude mcp add vibe-diagnosis -- node d:/D_Workspace_NB/-google-workspace/-antigravity-workspace/260709_vibe-clinic/mcp-server/index.js`
+  - `claude mcp add vibe-clinic -- node d:/D_Workspace_NB/-google-workspace/-antigravity-workspace/260709_vibe-clinic/mcp-server/index.js`
 - **검증**:
-  - `claude mcp list` 명령으로 `vibe-diagnosis`가 정상 등록 및 연결(`√ Connected`)되었는지 상태 확인.
+  - `claude mcp list` 명령으로 `vibe-clinic`가 정상 등록 및 연결(`√ Connected`)되었는지 상태 확인.
 
 ### 3. 규칙 동기화 패치 및 스크립트화 (보조 목표)
 - `SKILL.md`와 `GEMINI.md` 사이의 미세한 텍스트/포맷 차이 분석 및 동기화.
@@ -38,8 +38,8 @@
 
 ### 1. 임시 프로젝트 자가진단 검증 (Dry-Run)
 - 임시 프로젝트 생성: `d:/D_Workspace_NB/-google-workspace/-antigravity-workspace/temp-vibe-test`
-- 해당 경로에서 `node bin/vibe-diag.js init` 실행 및 MCP 도구 무결성 테스트.
-- `temp-vibe-test`에서 `node bin/vibe-diag.js run` 검증.
+- 해당 경로에서 `node bin/vibe-clinic.js init` 실행 및 MCP 도구 무결성 테스트.
+- `temp-vibe-test`에서 `node bin/vibe-clinic.js run` 검증.
 
 ### 2. Claude Code 트리거 테스트 (Dry-Run)
 - 임시 또는 테스트 프로젝트에서 Claude CLI를 비대화형 모드로 켜서 자가진단 트리거가 올바르게 감지되는지 테스트합니다.
