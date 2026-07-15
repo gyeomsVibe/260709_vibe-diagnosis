@@ -484,9 +484,11 @@ function App() {
         body: JSON.stringify({ strategy: 'auto' }),
       });
       const data = await res.json();
-      if (data.report) {
-        setCureAllReport(data.report);
-        const { cured, rolledBack, manual, unprescribable } = data.report.summary;
+      // 서버는 report 객체를 최상위로 직접 반환한다 (data === report).
+      // data.error 가 있으면 서버측 500 오류.
+      if (!data.error && data.summary) {
+        setCureAllReport(data);
+        const { cured, rolledBack, manual, unprescribable } = data.summary;
         const msg = `✅ 완치 ${cured} · ⚠️ 롤백 ${rolledBack} · 📋 수동 ${manual} · 🔑 처방불가 ${unprescribable}`;
         showToast(msg, cured > 0 ? 'success' : 'error');
         // 치료 후 진단 결과 + 원장 갱신
