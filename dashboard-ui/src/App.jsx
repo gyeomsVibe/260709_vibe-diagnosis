@@ -469,7 +469,7 @@ function App() {
     }
   };
 
-  // 💉 전체 치료 오케스트레이터 — 실패 진단을 일괄 치료하고 분류 리포트를 반환한다.
+  // 💉 일괄 치료 오케스트레이터 — 실패 진단을 일괄 치료하고 분류 리포트를 반환한다.
   // 완치 판정 = 오직 VERIFIED_RESULT(재진단 OK + 회귀 0)만. 할루시네이션 치료 차단.
   const runCureAll = async () => {
     const failingCount = summary.error + summary.warning;
@@ -477,7 +477,7 @@ function App() {
     if (!window.confirm(`실패한 진단 ${failingCount}건을 일괄 치료합니다.\n\n완치 인정 기준: 재진단 OK 검증 완료(VERIFIED_RESULT)만\n자동 롤백: 회귀 발생 시 원상복구됨\n\n계속하시겠습니까?`)) return;
 
     setIsCureAllRunning(true);
-    showToast('💉 전체 치료 중… 재진단 포함 최대 30초 소요', 'success');
+    showToast('💉 치료 중… 재진단 포함 최대 30초 소요', 'success');
     try {
       const res = await fetch('/api/repair/cure-all', {
         method: 'POST',
@@ -496,10 +496,10 @@ function App() {
         await runDiagnostics();
         fetchTreatments();
       } else {
-        showToast(data.error || '전체 치료 중 오류', 'error');
+        showToast(data.error || '치료 중 오류', 'error');
       }
     } catch (err) {
-      showToast('전체 치료 통신 오류', 'error');
+      showToast('치료 통신 오류', 'error');
     } finally {
       setIsCureAllRunning(false);
     }
@@ -532,7 +532,7 @@ function App() {
         {toast.message}
       </div>
 
-      {/* 💉 전체 치료 리포트 모달 */}
+      {/* 💉 치료 리포트 모달 */}
       {cureAllReport && (
         <div className="modal-overlay" onClick={() => setCureAllReport(null)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px' }}>
@@ -540,7 +540,7 @@ function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span>💉</span> 전체 치료 리포트
+                  <span>💉</span> 치료 리포트
                 </h2>
                 <p style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
                   완치 인정 기준: 재진단 OK 검증(VERIFIED_RESULT)만 — 할루시네이션 치료 차단
@@ -945,7 +945,7 @@ function App() {
                 {isCureAllRunning ? (
                   <span className="spinner" style={{ width: '12px', height: '12px', border: '2px solid rgba(239,68,68,0.2)', borderTopColor: '#ef4444', borderRadius: '50%', animation: 'spin .6s linear infinite' }}></span>
                 ) : <span style={{ fontSize: '15px' }}>💉</span>}
-                {isCureAllRunning ? '치료 중…' : `전체 치료 (${summary.error + summary.warning})`}
+                {isCureAllRunning ? '치료 중…' : `치료 (${summary.error + summary.warning})`}
               </button>
             </div>
             
