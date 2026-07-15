@@ -722,7 +722,8 @@ function startDashboard(projectDir, port = 7700, options = {}) {
           return;
         }
 
-        const proposal = await createProposal(currentProjectDir, diagResult);
+        // P2: strategy = 'auto'(기본, 로컬 룰 우선) | 'local' | 'ai'
+        const proposal = await createProposal(currentProjectDir, diagResult, { strategy: body.strategy });
         if (!proposal.success) {
           sendJson(res, proposal, 422);
           return;
@@ -740,6 +741,9 @@ function startDashboard(projectDir, port = 7700, options = {}) {
           proposalId,
           diagId: proposal.diagId,
           summary: proposal.summary,
+          strategy: proposal.strategy,
+          assessment: proposal.assessment,
+          alternatives: proposal.alternatives || [],
           originalFiles: proposal.originalFiles,
           repairedFiles: proposal.repairedFiles,
         });

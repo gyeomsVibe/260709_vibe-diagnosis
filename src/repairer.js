@@ -380,17 +380,76 @@ module.exports = {
   return null;
 }
 
+// P2 처방 평가: 사용자가 후보를 비교·승인할 때 보는 판단 근거.
+function assessProposal(proposal) {
+  const files = proposal.repairedFiles || [];
+  return {
+    filesTouched: files.length,
+    bytes: files.reduce((n, f) => n + (f.delete ? 0 : Buffer.byteLength(String(f.content || ''))), 0),
+    reversible: true, // 적용 시 항상 .bak + undo manifest 생성 (P3 자동 롤백 경로)
+    touchesDiagnostics: files.some(f => /\.clinic\.(js|cjs)$/.test(f.path)),
+  };
+}
+
+// P2 판단 계약 — 진단 약화 차단 가드 (must-reject):
+// 처방이 진단 파일(.clinic.*)을 수정하는 것은 triage가 원인을 "진단 파일
+// 자체의 결함"(ESM 불일치, 모듈 스키마 위반)으로 판정했을 때만 허용한다.
+// 그 외의 수정은 진단 기대값을 완화해 "가짜 완치"를 만드는 경로이므로
+// 자동 거부한다 — "never weaken a diagnostic to fake a pass"의 코드 집행.
+function validateProposalSafety(projectDir, diagResult, proposal) {
+  const touched = (proposal.repairedFiles || []).filter(f => /\.clinic\.(js|cjs)$/.test(f.path));
+  if (touched.length === 0) return { safe: true };
+
+  const diagnosticDefect =
+    triage.hasCause(projectDir, diagResult, triage.CAUSES.ESM_CJS_MISMATCH) ||
+    triage.hasCause(projectDir, diagResult, triage.CAUSES.INVALID_DIAGNOSTIC_MODULE);
+  if (diagnosticDefect) return { safe: true };
+
+  return {
+    safe: false,
+    code: 'BLOCKED_WEAKENING',
+    reason: `처방이 진단 파일(${touched.map(f => f.path).join(', ')})을 수정하려 했지만, 분석된 원인은 진단 파일 자체의 결함이 아닙니다. 진단 기대값을 완화하는 "가짜 완치"를 막기 위해 자동 거부했습니다 (BLOCKED_WEAKENING).`,
+  };
+}
+
+function finalizeProposal(projectDir, diagResult, proposal, strategy) {
+  const safety = validateProposalSafety(projectDir, diagResult, proposal);
+  if (!safety.safe) {
+    const failure = createFailureResult(diagResult.id, safety.reason);
+    failure.errorCode = safety.code;
+    return failure;
+  }
+  proposal.strategy = strategy;
+  proposal.assessment = assessProposal(proposal);
+  return proposal;
+}
+
 async function createRepairProposal(projectDir, diagResult, dependencies = {}) {
   const getByok = dependencies.getByok || getResolvedByok;
   const chatImpl = dependencies.chat || chat;
+  // P2 후보 전략: 'auto'(로컬 룰 우선, 없으면 AI) | 'local'(무AI 강제) | 'ai'(AI 강제)
+  const strategy = dependencies.strategy || 'auto';
   const byok = getByok(projectDir);
+  const byokReady = !!(byok.provider && byok.apiKey && byok.model);
 
-  if (!byok.provider || !byok.apiKey || !byok.model) {
+  // 후보 A — 로컬 룰 처방: 즉시·무AI·결정적. MIA "가장 값싼 유효 매체 우선".
+  if (strategy !== 'ai') {
     const localProposal = generateLocalRepairProposal(projectDir, diagResult);
-    if (localProposal) return localProposal;
+    if (localProposal) {
+      const finalized = finalizeProposal(projectDir, diagResult, localProposal, 'local');
+      if (finalized.success && byokReady) finalized.alternatives = ['ai'];
+      return finalized;
+    }
+    if (strategy === 'local') {
+      return createFailureResult(diagResult.id, '이 증상에 맞는 로컬 처방 규칙이 없습니다. AI 처방(strategy: "ai")으로 다시 요청하세요.');
+    }
+  }
+
+  if (!byokReady) {
     return createFailureResult(diagResult.id, 'BYOK not configured. Set provider, apiKey, and model.');
   }
 
+  // 후보 B — AI 처방 (강제 'ai' 또는 로컬 룰이 없는 auto).
   try {
     const ctx = collectContext(projectDir, diagResult);
     const userPrompt = buildPrompt(ctx);
@@ -406,7 +465,7 @@ async function createRepairProposal(projectDir, diagResult, dependencies = {}) {
     } catch (chatErr) {
       console.warn(`[AI Repair] Gemini API failed (${chatErr.message}). Falling back to local smart repairer.`);
       const localProposal = generateLocalRepairProposal(projectDir, diagResult);
-      if (localProposal) return localProposal;
+      if (localProposal) return finalizeProposal(projectDir, diagResult, localProposal, 'local');
       throw chatErr;
     }
 
@@ -416,17 +475,17 @@ async function createRepairProposal(projectDir, diagResult, dependencies = {}) {
       return createFailureResult(diagResult.id, 'AI determined no file changes could fix this issue.', parsed.summary);
     }
 
-    return {
+    return finalizeProposal(projectDir, diagResult, {
       success: true,
       diagId: diagResult.id,
       summary: parsed.summary,
       projectDir: path.resolve(projectDir),
       originalFiles: parsed.files.map(file => readFileSnapshot(projectDir, file.path)),
       repairedFiles: parsed.files,
-    };
+    }, 'ai');
   } catch (err) {
     const localProposal = generateLocalRepairProposal(projectDir, diagResult);
-    if (localProposal) return localProposal;
+    if (localProposal) return finalizeProposal(projectDir, diagResult, localProposal, 'local');
     return createFailureResult(diagResult.id, err.message);
   }
 }

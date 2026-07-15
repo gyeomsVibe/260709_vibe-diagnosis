@@ -808,6 +808,82 @@ test('a repair that breaks another diagnostic is rolled back automatically', asy
   }
 });
 
+// ─── MIA P2: Candidate Strategy & Weakening Guard ──────────────────────────
+
+test('weakening guard blocks a repair that edits a diagnostic for a logic failure', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-weaken-'));
+  try {
+    // 일반 CJS 프로젝트 + 로직/어서션 실패 → 원인은 대상 코드이지 진단 파일이 아님.
+    fs.writeFileSync(path.join(dir, 'package.json'), '{"name":"x"}', 'utf-8');
+    const diagResult = { id: 'calc-check', status: 'ERROR', details: '2 + 2 = 5, 기대값 4 (expected)' };
+
+    const proposal = await createRepairProposal(dir, diagResult, {
+      getByok: () => ({ provider: 'gemini', apiKey: 'k', model: 'm' }),
+      chat: async () => JSON.stringify({
+        files: [{ path: '.vibe-clinic/diagnostics/calc-check.clinic.js', content: 'module.exports = { /* weakened */ };' }],
+        summary: 'loosen the expectation',
+      }),
+    });
+
+    assert.strictEqual(proposal.success, false);
+    assert.strictEqual(proposal.errorCode, 'BLOCKED_WEAKENING');
+    assert.ok(proposal.error.includes('가짜 완치'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('weakening guard still allows repairing a genuinely defective diagnostic file', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-weaken-ok-'));
+  try {
+    // ESM 프로젝트에서 .clinic.js 로드 실패 → 진단 파일 자체 결함 → 수정 허용.
+    fs.writeFileSync(path.join(dir, 'package.json'), '{"name":"x","type":"module"}', 'utf-8');
+    const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+    fs.mkdirSync(diagDir, { recursive: true });
+    fs.writeFileSync(path.join(diagDir, 'sample.clinic.js'), 'module.exports = {};', 'utf-8');
+    const diagResult = { id: 'sample', status: 'ERROR', details: 'Schema violation: module.exports must be an object' };
+
+    const proposal = await createRepairProposal(dir, diagResult, {
+      getByok: () => ({ provider: '', apiKey: '', model: '' }),
+    });
+
+    assert.strictEqual(proposal.success, true);
+    assert.strictEqual(proposal.strategy, 'local');
+    assert.strictEqual(proposal.assessment.touchesDiagnostics, true);
+    assert.strictEqual(proposal.assessment.reversible, true);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('strategy "ai" forces the AI candidate even when a local rule exists', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-strategy-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'package.json'), '{"name":"x","type":"module"}', 'utf-8');
+    const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+    fs.mkdirSync(diagDir, { recursive: true });
+    fs.writeFileSync(path.join(diagDir, 'sample.clinic.js'), 'module.exports = {};', 'utf-8');
+    const diagResult = { id: 'sample', status: 'ERROR', details: 'Schema violation: module.exports must be an object' };
+
+    let aiCalled = false;
+    const proposal = await createRepairProposal(dir, diagResult, {
+      strategy: 'ai',
+      getByok: () => ({ provider: 'gemini', apiKey: 'k', model: 'm' }),
+      chat: async () => {
+        aiCalled = true;
+        return JSON.stringify({ files: [{ path: 'app.js', content: 'fixed' }], summary: 'ai fix' });
+      },
+    });
+
+    assert.strictEqual(aiCalled, true);
+    assert.strictEqual(proposal.success, true);
+    assert.strictEqual(proposal.strategy, 'ai');
+    assert.strictEqual(proposal.assessment.touchesDiagnostics, false);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('a clean repair with a baseline is labeled VERIFIED_RESULT', async () => {
   const { dir, snap } = makeRegressionFixture();
   try {
