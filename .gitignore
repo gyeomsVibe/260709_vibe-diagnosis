@@ -4,5 +4,8 @@ node_modules/
 *.vsix
 # BYOK config may hold a real API key — ignore it at ANY depth (root, examples/…)
 **/.vibe-clinic/config.json
+# Treatment ledger is per-environment runtime audit state (CURE_*.md patterns
+# are the tracked, curated knowledge instead).
+**/.vibe-clinic/treatment-ledger.json
 claude_vibe_check_mode_package.zip
 .env

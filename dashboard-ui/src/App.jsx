@@ -78,7 +78,15 @@ function DiagnosticCard({ diag, result, isActive, onClick }) {
             <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }}>
               {diag.name || diag.id}
             </span>
-            <span className={`card-badge ${layerClass}`}>{diag.layer}</span>
+            <span style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              {result?.confidence === 'SUSPECTED' && (
+                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--warn)', background: 'var(--warn-bg)', border: '1px solid var(--warn-border)', borderRadius: '8px', padding: '1px 6px', whiteSpace: 'nowrap' }}>간헐 의심</span>
+              )}
+              {result?.confidence === 'CONFIRMED' && result?.status !== 'OK' && (
+                <span style={{ fontSize: '9px', fontWeight: 700, color: 'var(--err)', background: 'var(--err-bg)', border: '1px solid var(--err-border)', borderRadius: '8px', padding: '1px 6px', whiteSpace: 'nowrap' }}>확진 (재현 2/2)</span>
+              )}
+              <span className={`card-badge ${layerClass}`}>{diag.layer}</span>
+            </span>
           </div>
           <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '4px', fontFamily: 'monospace' }}>
             {diag.id}
@@ -128,6 +136,7 @@ function App() {
   const [repairStates, setRepairStates] = useState({});
   const [pendingProposal, setPendingProposal] = useState(null);
   const [manualRx, setManualRx] = useState(null); // 수동 처방전 (행동 처방)
+  const [treatments, setTreatments] = useState([]); // P4 치료 원장 (최신순)
 
   // States for UI widgets
   const [isDrawerActive, setIsDrawerActive] = useState(false);
@@ -150,8 +159,19 @@ function App() {
       fetchErrorPatterns();
       fetchByokConfig();
       fetchProjectExplanation();
+      fetchTreatments();
     }
   }, [currentProjectDir]);
+
+  const fetchTreatments = async () => {
+    try {
+      const res = await fetch('/api/treatments');
+      const data = await res.json();
+      if (Array.isArray(data)) setTreatments(data);
+    } catch (err) {
+      // 치료 원장은 없을 수 있음 — 조용히 무시
+    }
+  };
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, type, message });
@@ -377,6 +397,7 @@ function App() {
           [diagId]: { ...prev[diagId], status: 'idle' }
         }));
         showToast('🩺 수동 처방전이 발급되었습니다.', 'success');
+        fetchTreatments();
       } else if (data.success) {
         setPendingProposal(data);
         setRepairStates(prev => ({
@@ -419,22 +440,22 @@ function App() {
           [diagId]: { ...prev[diagId], status: 'repaired' }
         }));
         setPendingProposal(null);
-        showToast('AI 치료 적용 성공! 🟢', 'success');
-        
-        // 실시간 복구 히스토리 타임라인 기록 추가
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const historyItem = { time, type: 'ok', msg: `AI 복구 완료: ${diagId} 치료가 정상 반영되었습니다.` };
-        setRepairStates(prev => {
-          const current = prev[diagId] || {};
-          const history = current.history || [];
-          return {
-            ...prev,
-            [diagId]: { ...current, history: [historyItem, ...history] }
-          };
-        });
+        const verified = data.maturity === 'VERIFIED_RESULT';
+        showToast(verified ? '완치 검증 완료! 🟢 (회귀 0)' : 'AI 치료 적용 성공! 🟢', 'success');
 
-        // 재진단 구동
-        runDiagnostics();
+        // 재진단 + 치료 원장 갱신
+        await runDiagnostics();
+        fetchTreatments();
+      } else if (data.maturity === 'ROLLED_BACK') {
+        // P3 자동 롤백: 치료가 다른 진단을 부수거나 대상 미완치 → 원상복구됨.
+        setPendingProposal(null);
+        setRepairStates(prev => ({
+          ...prev,
+          [diagId]: { ...prev[diagId], status: 'idle' }
+        }));
+        showToast(`⚠️ 자동 롤백됨: ${data.error || '회귀가 감지되어 원상복구했습니다.'}`, 'error');
+        await runDiagnostics();
+        fetchTreatments();
       } else {
         showToast(data.error || '치료 적용 실패', 'error');
       }
@@ -796,17 +817,22 @@ function App() {
               <h4 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text2)', marginBottom: '12px' }}>
                 최근 치료 트렌드 타임라인
               </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {Object.keys(repairStates).some(k => repairStates[k].history?.length > 0) ? (
-                  Object.keys(repairStates)
-                    .flatMap(k => repairStates[k].history.map(h => ({ ...h, diagId: k })))
-                    .slice(0, 3)
-                    .map((item, idx) => (
-                      <div key={idx} style={{ fontSize: '11.5px', color: 'var(--text2)', lineHeight: '1.4' }}>
-                        <span style={{ fontSize: '9px', color: 'var(--text3)', marginRight: '8px' }}>[{item.time}]</span>
-                        <strong>{item.diagId}</strong> — <span style={{ color: 'var(--text)' }}>{item.msg}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {treatments.length > 0 ? (
+                  treatments.slice(0, 5).map((item, idx) => {
+                    const label = item.maturity || (item.success ? 'APPLIED' : 'FAILED');
+                    const color = label === 'VERIFIED_RESULT' ? 'var(--ok)'
+                      : label === 'ROLLED_BACK' || label === 'FAILED' ? 'var(--err)'
+                      : label === 'PRESCRIBED' ? 'var(--warn)' : 'var(--text2)';
+                    const at = item.at ? new Date(item.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    return (
+                      <div key={idx} style={{ fontSize: '11.5px', color: 'var(--text2)', lineHeight: '1.4', display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+                        <span style={{ fontSize: '9px', color: 'var(--text3)', minWidth: '34px' }}>{at}</span>
+                        <span style={{ fontSize: '9px', fontWeight: 700, color, border: `1px solid ${color}`, borderRadius: '6px', padding: '0 5px', whiteSpace: 'nowrap' }}>{label}</span>
+                        <span><strong>{item.diagId}</strong>{item.strategy ? <span style={{ color: 'var(--text3)' }}> · {item.strategy}</span> : null}</span>
                       </div>
-                    ))
+                    );
+                  })
                 ) : (
                   <p style={{ fontSize: '11px', color: 'var(--text3)', padding: '12px 0' }}>치료 히스토리가 존재하지 않습니다.</p>
                 )}
@@ -921,11 +947,31 @@ function App() {
             <>
               <div style={{ fontSize: '12.5px', color: 'var(--text2)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div><strong>영역 레이어:</strong> <span className={`card-badge badge-${selectedDiagObj.layer?.toLowerCase()}`}>{selectedDiagObj.layer}</span></div>
-                <div><strong>검증 상태:</strong> <span style={{ color: selectedDiagResult?.status === 'OK' ? 'var(--ok)' : 'var(--err)', fontWeight: 700 }}>{selectedDiagResult?.status || 'PENDING'}</span></div>
+                <div><strong>검증 상태:</strong> <span style={{ color: selectedDiagResult?.status === 'OK' ? 'var(--ok)' : 'var(--err)', fontWeight: 700 }}>{selectedDiagResult?.status || 'PENDING'}</span>
+                  {selectedDiagResult?.confidence && selectedDiagResult?.status !== 'OK' && (
+                    <span style={{ marginLeft: '8px', fontSize: '10px', fontWeight: 700, color: selectedDiagResult.confidence === 'CONFIRMED' ? 'var(--err)' : 'var(--warn)' }}>
+                      {selectedDiagResult.confidence === 'CONFIRMED' ? '확진 — 재실행에서도 재현됨 (2/2)' : '간헐 의심 — 재실행에서는 통과 (1/2)'}
+                    </span>
+                  )}
+                </div>
                 <div style={{ background: 'var(--surface2)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border)' }}>
                   <strong>의사 소견:</strong><br />
                   {selectedDiagResult?.details || '진단 대기 중'}
                 </div>
+                {selectedDiagResult?.causeHypotheses?.length > 0 && (
+                  <div style={{ background: 'var(--surface2)', padding: '10px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                    <strong>🔎 원인 후보 (가능성순):</strong>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+                      {selectedDiagResult.causeHypotheses.map((h, i) => (
+                        <div key={i} style={{ fontSize: '11px', color: 'var(--text3)' }}>
+                          <span style={{ fontWeight: 700, color: h.likelihood === 'HIGH' ? 'var(--warn)' : 'var(--text2)' }}>{h.likelihood}</span>
+                          {' · '}{h.cause}
+                          <span style={{ opacity: 0.7 }}> — {h.signal}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {selectedDiagResult && (selectedDiagResult.status === 'ERROR' || selectedDiagResult.status === 'WARNING') && (

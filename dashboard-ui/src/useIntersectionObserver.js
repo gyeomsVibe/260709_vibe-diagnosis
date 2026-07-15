@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 
 export function useIntersectionObserver(options = {}) {
-  const [isIntersecting, setIsIntersecting] = useState(false);
+  // Default TRUE so a diagnostic card ALWAYS renders its content. The observer
+  // only culls cards once it confirms they are offscreen; if it never fires
+  // (unsupported, or the list mounts fully offscreen) the card stays visible
+  // instead of going permanently blank — a blank diagnostic card is worse than
+  // losing the virtual-scroll optimization.
+  const [isIntersecting, setIsIntersecting] = useState(true);
   const elementRef = useRef(null);
 
   useEffect(() => {
     const currentElement = elementRef.current;
-    if (!currentElement) return;
+    if (!currentElement || typeof IntersectionObserver === 'undefined') return;
 
     const observer = new IntersectionObserver(([entry]) => {
       setIsIntersecting(entry.isIntersecting);

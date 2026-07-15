@@ -4,7 +4,7 @@ const path = require('path');
 const { runDiagnostics, discoverDiagnostics } = require('./runner');
 const { validateDiagnosticModule } = require('./schema');
 const { getByokConfig, saveByokConfig, getResolvedByok } = require('./config-manager');
-const { createRepairProposal, applyRepairProposal } = require('./repairer');
+const { createRepairProposal, applyRepairProposal, readTreatmentLedger } = require('./repairer');
 const aiProvider = require('./ai-provider');
 const { execFile } = require('child_process');
 const { initialize } = require('./init');
@@ -643,6 +643,12 @@ function startDashboard(projectDir, port = 7700, options = {}) {
     if (req.method === 'GET' && url.pathname === '/api/list') {
       const diagnostics = listDiagnosticMeta(currentProjectDir);
       sendJson(res, diagnostics);
+      return;
+    }
+
+    // P4 치료 원장: 과거 처방·치료 기록 (읽기 전용, 최신순).
+    if (req.method === 'GET' && url.pathname === '/api/treatments') {
+      sendJson(res, readTreatmentLedger(currentProjectDir));
       return;
     }
 

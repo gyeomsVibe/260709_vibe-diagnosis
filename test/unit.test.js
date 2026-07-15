@@ -946,6 +946,45 @@ test('a clean repair with a baseline is labeled VERIFIED_RESULT', async () => {
     assert.deepStrictEqual(result.regressions, []);
     assert.strictEqual(result.rerunResult.status, 'OK');
     assert.strictEqual(fs.readFileSync(path.join(dir, 'fileA.txt'), 'utf-8'), 'fixed');
+
+    // P4 치료 원장 + 완치 패턴 자동 축적 검증.
+    const ledger = JSON.parse(fs.readFileSync(path.join(dir, '.vibe-clinic', 'treatment-ledger.json'), 'utf-8'));
+    assert.strictEqual(ledger[0].diagId, 'diag-a');
+    assert.strictEqual(ledger[0].maturity, 'VERIFIED_RESULT');
+    const curePattern = fs.readFileSync(path.join(dir, '.vibe-clinic', 'error-patterns', 'CURE_diag-a.md'), 'utf-8');
+    assert.ok(curePattern.includes('VERIFIED_RESULT'));
+    assert.ok(curePattern.includes('fixes A only'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('rolled-back and manual treatments are recorded in the ledger', async () => {
+  const { dir, snap } = makeRegressionFixture();
+  try {
+    const baseline = await runDiagnostics(dir);
+    const badProposal = {
+      success: true,
+      diagId: 'diag-a',
+      summary: 'breaks B',
+      projectDir: path.resolve(dir),
+      originalFiles: [snap('fileA.txt'), snap('fileB.txt')],
+      repairedFiles: [
+        { path: 'fileA.txt', content: 'fixed' },
+        { path: 'fileB.txt', content: 'oops' },
+      ],
+    };
+    await applyRepairProposal(dir, badProposal, { baselineResults: baseline });
+
+    const manual = await createRepairProposal(dir, {
+      id: 'net-diag', status: 'ERROR', details: 'fetch failed: ECONNREFUSED',
+    }, { getByok: () => ({ provider: '', apiKey: '', model: '' }) });
+    assert.strictEqual(manual.kind, 'MANUAL');
+
+    const ledger = JSON.parse(fs.readFileSync(path.join(dir, '.vibe-clinic', 'treatment-ledger.json'), 'utf-8'));
+    const labels = ledger.map(e => e.maturity);
+    assert.ok(labels.includes('ROLLED_BACK'));
+    assert.ok(labels.includes('PRESCRIBED'));
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

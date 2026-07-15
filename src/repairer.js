@@ -7,6 +7,56 @@ const { runDiagnostics, discoverDiagnostics } = require('./runner');
 const triage = require('./triage');
 
 const BACKUP_EXT = '.bak';
+const LEDGER_FILE = 'treatment-ledger.json';
+const LEDGER_MAX_ENTRIES = 500;
+
+// P4 치료 원장 (MIA 학습 루프): 모든 처방·치료 결과를 append-only로 기록해
+// "무엇이 어떤 원인에 어떤 처방으로 치료됐는가"를 지식으로 축적한다.
+function readTreatmentLedger(projectDir) {
+  const ledgerPath = path.join(projectDir, '.vibe-clinic', LEDGER_FILE);
+  try {
+    if (fs.existsSync(ledgerPath)) return JSON.parse(fs.readFileSync(ledgerPath, 'utf-8'));
+  } catch {}
+  return [];
+}
+
+function appendTreatmentLedger(projectDir, entry) {
+  try {
+    const dir = path.join(projectDir, '.vibe-clinic');
+    if (!fs.existsSync(dir)) return;
+    const ledger = readTreatmentLedger(projectDir);
+    ledger.unshift({ at: new Date().toISOString(), ...entry });
+    fs.writeFileSync(path.join(dir, LEDGER_FILE), JSON.stringify(ledger.slice(0, LEDGER_MAX_ENTRIES), null, 2), 'utf-8');
+  } catch (err) {
+    console.warn(`[Treatment Ledger] append failed: ${err.message}`);
+  }
+}
+
+// VERIFIED_RESULT로 끝난 치료는 error-patterns 문서로 자동 축적한다.
+// 파일명에 diagId를 포함하므로 collectContext()가 같은 진단의 다음 실패 때
+// 이 문서를 AI 프롬프트에 자동 주입한다 — "같은 병의 지난 치료 기록" 재사용.
+function writeCurePattern(projectDir, proposal, rerunResult) {
+  try {
+    const patternsDir = path.join(projectDir, '.vibe-clinic', 'error-patterns');
+    if (!fs.existsSync(patternsDir)) fs.mkdirSync(patternsDir, { recursive: true });
+    const filePath = path.join(patternsDir, `CURE_${proposal.diagId}.md`);
+    const lines = [
+      `# CURE — ${proposal.diagId} 치료 기록 (자동 생성)`,
+      '',
+      `- 최종 치료 일시: ${new Date().toISOString()}`,
+      `- 처방 전략: ${proposal.strategy || 'unknown'}`,
+      `- 원인 후보: ${(proposal.causes || []).join(', ') || '기록 없음'}`,
+      `- 수정 파일: ${(proposal.repairedFiles || []).map(f => f.path).join(', ') || '없음'}`,
+      `- 재진단 결과: ${rerunResult ? rerunResult.status : 'unknown'} (VERIFIED_RESULT — 회귀 0)`,
+      '',
+      '## 처방 요약',
+      proposal.summary || '(요약 없음)',
+    ];
+    fs.writeFileSync(filePath, lines.join('\n') + '\n', 'utf-8');
+  } catch (err) {
+    console.warn(`[Cure Pattern] write failed: ${err.message}`);
+  }
+}
 
 const SYSTEM_PROMPT = `You are a code repair specialist for a Node.js project.
 You receive a diagnostic failure with context and must fix the root cause.
@@ -416,16 +466,31 @@ function generateManualPrescription(projectDir, diagResult) {
 
   if (steps.length === 0) return null;
 
-  return {
+  const manual = {
     success: true,
     kind: 'MANUAL',
     diagId: diagResult.id,
     summary: `이 증상은 파일 수정이 아니라 수동 조치가 필요한 병입니다. 아래 처방전의 조치를 수행한 뒤 재진단으로 완치 여부를 확인하세요.`,
     prescription: steps,
+    causes: Array.isArray(diagResult.causeHypotheses)
+      ? diagResult.causeHypotheses.map(h => h.cause)
+      : triage.analyze(projectDir, diagResult).map(h => h.cause),
     projectDir: path.resolve(projectDir),
     originalFiles: [],
     repairedFiles: [],
   };
+
+  // P4: 수동 처방전 발급도 치료 원장에 기록 (결과 라벨: PRESCRIBED).
+  appendTreatmentLedger(projectDir, {
+    diagId: diagResult.id,
+    strategy: 'manual',
+    causes: manual.causes,
+    maturity: 'PRESCRIBED',
+    success: true,
+    summary: steps[0],
+  });
+
+  return manual;
 }
 
 // P2 처방 평가: 사용자가 후보를 비교·승인할 때 보는 판단 근거.
@@ -469,6 +534,9 @@ function finalizeProposal(projectDir, diagResult, proposal, strategy) {
   }
   proposal.strategy = strategy;
   proposal.assessment = assessProposal(proposal);
+  proposal.causes = Array.isArray(diagResult.causeHypotheses)
+    ? diagResult.causeHypotheses.map(h => h.cause)
+    : triage.analyze(projectDir, diagResult).map(h => h.cause);
   return proposal;
 }
 
@@ -606,6 +674,16 @@ async function applyRepairProposal(projectDir, proposal, options = {}) {
         ? `치료 후에도 대상 진단이 완치되지 않아 자동 롤백했습니다 (${restored.length}개 파일 원상복구).`
         : `치료가 다른 진단 ${regressions.length}건을 손상시켜(회귀) 자동 롤백했습니다: ${regressions.map(r => r.id).join(', ')} (${restored.length}개 파일 원상복구).`;
 
+      appendTreatmentLedger(projectDir, {
+        diagId: proposal.diagId,
+        strategy: proposal.strategy || null,
+        causes: proposal.causes || [],
+        maturity: 'ROLLED_BACK',
+        success: false,
+        regressions: regressions.map(r => r.id),
+        summary: reason,
+      });
+
       return {
         success: false,
         maturity: 'ROLLED_BACK',
@@ -622,11 +700,24 @@ async function applyRepairProposal(projectDir, proposal, options = {}) {
       };
     }
 
+    const maturity = baseline ? 'VERIFIED_RESULT' : 'APPLIED';
+
+    appendTreatmentLedger(projectDir, {
+      diagId: proposal.diagId,
+      strategy: proposal.strategy || null,
+      causes: proposal.causes || [],
+      maturity,
+      success: true,
+      filesModified: modified,
+      summary: proposal.summary,
+    });
+    if (maturity === 'VERIFIED_RESULT') writeCurePattern(projectDir, proposal, rerunResult);
+
     return {
       success: true,
       // 기준선(치료 전 전체 결과)이 있어 회귀 0을 실증했으면 VERIFIED_RESULT,
       // 기준선이 없으면 대상 완치만 확인된 APPLIED 로 구분한다 (MIA 성숙도 라벨).
-      maturity: baseline ? 'VERIFIED_RESULT' : 'APPLIED',
+      maturity,
       diagId: proposal.diagId,
       filesModified: modified,
       backupFiles: backups,
@@ -652,4 +743,5 @@ module.exports = {
   repairDiagnostic,
   createRepairProposal,
   applyRepairProposal,
+  readTreatmentLedger,
 };
