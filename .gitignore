@@ -2,6 +2,7 @@ node_modules/
 .DS_Store
 *.log
 *.vsix
-.vibe-clinic/config.json
+# BYOK config may hold a real API key — ignore it at ANY depth (root, examples/…)
+**/.vibe-clinic/config.json
 claude_vibe_check_mode_package.zip
 .env
