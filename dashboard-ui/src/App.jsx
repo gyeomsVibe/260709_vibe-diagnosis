@@ -160,7 +160,8 @@ function App() {
       fetchDiagnostics();
       fetchErrorPatterns();
       fetchByokConfig();
-      fetchProjectExplanation();
+      // AI 프로젝트 설명은 자동 호출하지 않음 — 429 쿼터 방지.
+      // 사용자가 직접 "🔄 로컬 분석기 구동" 버튼을 눌러 실행.
       fetchTreatments();
     }
   }, [currentProjectDir]);
@@ -347,9 +348,9 @@ function App() {
       });
       const data = await res.json();
       if (data.success) {
-        setByokFeedback({ type: 'ok', text: '💾 로컬 설정 파일에 안전하게 저장되었습니다.' });
+        setByokFeedback({ type: 'ok', text: '💾 저장 완료. 아래 "🔄 로컬 분석기 구동" 버튼으로 AI 분석을 실행하세요.' });
         fetchByokConfig();
-        fetchProjectExplanation();
+        // 자동 분석 호출 제거 — 429 쿼터 방지. 사용자가 직접 버튼 클릭.
         showToast('설정 저장 완료', 'success');
       } else {
         setByokFeedback({ type: 'err', text: data.error || '저장 실패' });
@@ -879,8 +880,10 @@ function App() {
                 <div style={{ fontWeight: 600, color: 'var(--text3)', marginBottom: '6px' }}>
                   프로젝트 분석 대기 중
                 </div>
-                <p style={{ fontSize: '11px', color: 'var(--text3)' }}>
-                  🤖 AI 요약 및 깃허브 스타일 스택 분석을 활성화하려면 상단의 <b>내 AI 키 직접 연결</b>에서 키를 등록하고 저장해 주세요.
+                <p style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px' }}>
+                  아래 버튼을 눌러 프로젝트를 분석합니다.<br/>
+                  🤖 AI 분석은 <b>내 AI 키 직접 연결</b>에서 키 등록 후 사용 가능하며,<br/>
+                  키 없이도 <b>로컬 분석기</b>로 기본 정보를 확인할 수 있습니다.
                 </p>
                 {projectExplain?.error && (
                   <p style={{ fontSize: '10px', color: 'var(--err)', marginTop: '8px' }}>
@@ -890,7 +893,7 @@ function App() {
                 <button 
                   className="btn-secondary" 
                   onClick={() => fetchProjectExplanation(true)} 
-                  style={{ marginTop: '12px', width: '100%', padding: '6px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{ marginTop: '4px', width: '100%', padding: '8px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', borderColor: 'var(--accent)', color: 'var(--accent)' }}
                 >
                   🔄 로컬 분석기 구동
                 </button>
