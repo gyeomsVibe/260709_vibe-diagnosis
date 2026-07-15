@@ -654,3 +654,183 @@ test('createRepairProposal falls back to local repair proposal for ESM loading e
   }
 });
 
+// ─── MIA P1: Flaky Gate & Triage ───────────────────────────────────────────
+
+test('flaky gate marks a once-only failure as SUSPECTED and keeps the failing status', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-flaky-'));
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+  fs.mkdirSync(diagDir, { recursive: true });
+  const diagSource = [
+    'let calls = 0;',
+    'module.exports = {',
+    "  id: 'flaky-diag', name: 'Flaky', layer: 'TASK',",
+    '  run() {',
+    '    calls += 1;',
+    "    if (calls === 1) return { status: 'ERROR', details: 'first run fails' };",
+    "    return { status: 'OK', details: 'second run passes' };",
+    '  },',
+    '};',
+  ].join('\n');
+  fs.writeFileSync(path.join(diagDir, 'flaky.clinic.js'), diagSource, 'utf-8');
+  try {
+    const results = await runDiagnostics(dir);
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual(results[0].status, 'ERROR');
+    assert.strictEqual(results[0].confidence, 'SUSPECTED');
+    assert.ok(results[0].details.includes('간헐 실패 의심'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('flaky gate confirms a reproducible failure and attaches cause hypotheses', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-confirmed-'));
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+  fs.mkdirSync(diagDir, { recursive: true });
+  const diagSource = [
+    'module.exports = {',
+    "  id: 'always-broken', name: 'Broken', layer: 'TASK',",
+    "  run() { return { status: 'ERROR', details: \"Cannot find module 'left-pad'\" }; },",
+    '};',
+  ].join('\n');
+  fs.writeFileSync(path.join(diagDir, 'broken.clinic.js'), diagSource, 'utf-8');
+  try {
+    const results = await runDiagnostics(dir);
+    assert.strictEqual(results[0].status, 'ERROR');
+    assert.strictEqual(results[0].confidence, 'CONFIRMED');
+    assert.ok(Array.isArray(results[0].causeHypotheses));
+    assert.ok(results[0].causeHypotheses.some(h => h.cause === 'MISSING_DEPENDENCY'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('retriable:false diagnostics are never re-run by the flaky gate', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-noretry-'));
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+  fs.mkdirSync(diagDir, { recursive: true });
+  const diagSource = [
+    "const fs = require('fs');",
+    "const path = require('path');",
+    'module.exports = {',
+    "  id: 'run-once', name: 'Once', layer: 'TASK', retriable: false,",
+    '  run(ctx) {',
+    "    fs.appendFileSync(path.join(ctx.projectDir, 'calls.log'), 'x');",
+    "    return { status: 'ERROR', details: 'side-effectful failure' };",
+    '  },',
+    '};',
+  ].join('\n');
+  fs.writeFileSync(path.join(diagDir, 'once.clinic.js'), diagSource, 'utf-8');
+  try {
+    const results = await runDiagnostics(dir);
+    assert.strictEqual(results[0].status, 'ERROR');
+    assert.strictEqual(fs.readFileSync(path.join(dir, 'calls.log'), 'utf-8'), 'x');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('triage maps failure signatures to cause hypotheses', () => {
+  const triage = require('../src/triage');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-triage-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'package.json'), '{"name":"x","type":"module"}', 'utf-8');
+    const hs = triage.analyze(dir, { status: 'ERROR', details: 'Schema violation: module.exports must be an object' });
+    assert.ok(hs.some(h => h.cause === 'ESM_CJS_MISMATCH'));
+
+    const net = triage.analyze(dir, { status: 'WARNING', details: 'RPC timeout after 4000ms (balanceOf)' });
+    assert.ok(net.some(h => h.cause === 'NETWORK_OR_QUOTA'));
+
+    assert.deepStrictEqual(triage.analyze(dir, { status: 'OK', details: 'fine' }), []);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// ─── MIA P3: Regression Gate & Auto Rollback ───────────────────────────────
+
+function makeRegressionFixture() {
+  const crypto = require('crypto');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-regress-'));
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+  fs.mkdirSync(diagDir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'fileA.txt'), 'broken', 'utf-8');
+  fs.writeFileSync(path.join(dir, 'fileB.txt'), 'good', 'utf-8');
+  const diagTemplate = (id, file, want) => [
+    "const fs = require('fs');",
+    "const path = require('path');",
+    'module.exports = {',
+    `  id: '${id}', name: '${id}', layer: 'TASK', retriable: false,`,
+    '  run(ctx) {',
+    `    const v = fs.readFileSync(path.join(ctx.projectDir, '${file}'), 'utf-8');`,
+    `    return v === '${want}'`,
+    "      ? { status: 'OK', details: 'content as expected' }",
+    "      : { status: 'ERROR', details: 'unexpected content: ' + v };",
+    '  },',
+    '};',
+  ].join('\n');
+  fs.writeFileSync(path.join(diagDir, 'diag-a.clinic.js'), diagTemplate('diag-a', 'fileA.txt', 'fixed'), 'utf-8');
+  fs.writeFileSync(path.join(diagDir, 'diag-b.clinic.js'), diagTemplate('diag-b', 'fileB.txt', 'good'), 'utf-8');
+  const snap = rel => {
+    const content = fs.readFileSync(path.join(dir, rel), 'utf-8');
+    return { path: rel, content, exists: true, hash: crypto.createHash('sha256').update(content).digest('hex') };
+  };
+  return { dir, snap };
+}
+
+test('a repair that breaks another diagnostic is rolled back automatically', async () => {
+  const { dir, snap } = makeRegressionFixture();
+  try {
+    const baseline = await runDiagnostics(dir); // diag-a ERROR, diag-b OK
+
+    const proposal = {
+      success: true,
+      diagId: 'diag-a',
+      summary: 'fixes A but corrupts B',
+      projectDir: path.resolve(dir),
+      originalFiles: [snap('fileA.txt'), snap('fileB.txt')],
+      repairedFiles: [
+        { path: 'fileA.txt', content: 'fixed' },
+        { path: 'fileB.txt', content: 'corrupted-by-repair' },
+      ],
+    };
+
+    const result = await applyRepairProposal(dir, proposal, { baselineResults: baseline });
+
+    assert.strictEqual(result.success, false);
+    assert.strictEqual(result.maturity, 'ROLLED_BACK');
+    assert.ok(result.regressions.some(r => r.id === 'diag-b'));
+    // Files must be restored to their pre-repair contents.
+    assert.strictEqual(fs.readFileSync(path.join(dir, 'fileA.txt'), 'utf-8'), 'broken');
+    assert.strictEqual(fs.readFileSync(path.join(dir, 'fileB.txt'), 'utf-8'), 'good');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a clean repair with a baseline is labeled VERIFIED_RESULT', async () => {
+  const { dir, snap } = makeRegressionFixture();
+  try {
+    const baseline = await runDiagnostics(dir);
+
+    const proposal = {
+      success: true,
+      diagId: 'diag-a',
+      summary: 'fixes A only',
+      projectDir: path.resolve(dir),
+      originalFiles: [snap('fileA.txt')],
+      repairedFiles: [{ path: 'fileA.txt', content: 'fixed' }],
+    };
+
+    const result = await applyRepairProposal(dir, proposal, { baselineResults: baseline });
+
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.maturity, 'VERIFIED_RESULT');
+    assert.deepStrictEqual(result.regressions, []);
+    assert.strictEqual(result.rerunResult.status, 'OK');
+    assert.strictEqual(fs.readFileSync(path.join(dir, 'fileA.txt'), 'utf-8'), 'fixed');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+

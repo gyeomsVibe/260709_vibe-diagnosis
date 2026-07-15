@@ -766,7 +766,10 @@ function startDashboard(projectDir, port = 7700, options = {}) {
         }
         repairProposals.delete(proposalId);
 
-        const result = await applyProposal(currentProjectDir, storedProposal.proposal);
+        const result = await applyProposal(currentProjectDir, storedProposal.proposal, {
+          // P3 회귀 게이트: 치료 전 마지막 전체 진단 결과를 기준선으로 전달.
+          baselineResults: lastRunResults,
+        });
 
         if (result.rerunResult) {
           const idx = lastRunResults.findIndex(r => r.id === result.diagId);

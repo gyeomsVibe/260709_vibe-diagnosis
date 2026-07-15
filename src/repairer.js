@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { chat } = require('./ai-provider');
 const { getResolvedByok } = require('./config-manager');
 const { runDiagnostics, discoverDiagnostics } = require('./runner');
+const triage = require('./triage');
 
 const BACKUP_EXT = '.bak';
 
@@ -164,12 +165,15 @@ function readFileSnapshot(projectDir, relativePath) {
 function applyChanges(projectDir, files) {
   const modified = [];
   const backups = [];
+  const undoManifest = [];
 
   for (const file of files) {
     const absPath = resolveProjectFile(projectDir, file.path);
+    const existedBefore = fs.existsSync(absPath);
 
     const backup = createBackup(absPath);
     if (backup) backups.push(backup);
+    undoManifest.push({ path: file.path, existedBefore, backupPath: backup });
 
     if (file.delete === true) {
       if (fs.existsSync(absPath)) {
@@ -186,7 +190,26 @@ function applyChanges(projectDir, files) {
     modified.push(file.path);
   }
 
-  return { modified, backups };
+  return { modified, backups, undoManifest };
+}
+
+// P3 자동 롤백: applyChanges의 undoManifest를 역순으로 되돌린다.
+// 기존 파일은 .bak에서 복원하고, 치료가 새로 만든 파일은 삭제한다.
+function rollbackChanges(projectDir, undoManifest) {
+  const restored = [];
+  for (const entry of [...undoManifest].reverse()) {
+    try {
+      const absPath = resolveProjectFile(projectDir, entry.path);
+      if (entry.existedBefore && entry.backupPath && fs.existsSync(entry.backupPath)) {
+        fs.copyFileSync(entry.backupPath, absPath);
+        restored.push(entry.path);
+      } else if (!entry.existedBefore && fs.existsSync(absPath)) {
+        fs.unlinkSync(absPath);
+        restored.push(entry.path);
+      }
+    } catch {}
+  }
+  return restored;
 }
 
 function createFailureResult(diagId, error, summary = '') {
@@ -212,12 +235,18 @@ function clearModuleCache(projectDir, relativePaths) {
 }
 
 async function rerunSingleDiagnostic(projectDir, diagId, modifiedFiles = []) {
+  const { target } = await rerunAllDiagnostics(projectDir, diagId, modifiedFiles);
+  return target;
+}
+
+// 전체 재진단 + 대상 진단 식별. P3 회귀 게이트가 전체 결과를 함께 쓴다.
+async function rerunAllDiagnostics(projectDir, diagId, modifiedFiles = []) {
   try {
     clearModuleCache(projectDir, modifiedFiles);
     const results = await runDiagnostics(projectDir);
 
     const exact = results.find(r => r.id === diagId);
-    if (exact) return exact;
+    if (exact) return { allResults: results, target: exact };
 
     // A load-failed diagnostic reports its FILE basename as id (the module
     // never loaded), but once repaired it reports its own module id. Resolve
@@ -232,14 +261,14 @@ async function rerunSingleDiagnostic(projectDir, diagId, modifiedFiles = []) {
         const mod = require(absPath);
         if (mod && mod.id) {
           const byModuleId = results.find(r => r.id === mod.id);
-          if (byModuleId) return byModuleId;
+          if (byModuleId) return { allResults: results, target: byModuleId };
         }
       } catch {}
     }
 
-    return null;
+    return { allResults: results, target: null };
   } catch {
-    return null;
+    return { allResults: [], target: null };
   }
 }
 
@@ -249,19 +278,8 @@ function generateLocalRepairProposal(projectDir, diagResult) {
   const errMsg = diagResult.errorMessage || '';
 
   // 1. package.json의 "type": "module" 설정으로 인한 CommonJS 진단 도구 로드 오류 (.js -> .cjs 자동 변환)
-  // Node 버전에 따라 같은 원인이 다른 증상으로 나타난다:
-  //  - 구버전: require()가 "module is not defined in ES module scope"로 즉시 실패
-  //  - Node 22+ (require-esm): 로드는 되지만 module.exports가 비어 Schema violation으로 보고
-  // 따라서 문자열 매칭 외에 "ESM 프로젝트 + .clinic.js 로드/스키마 실패" 구조 신호로도 감지한다.
-  const isEsmProject = (() => {
-    try {
-      const pkg = JSON.parse(fs.readFileSync(path.join(projectDir, 'package.json'), 'utf-8'));
-      return pkg.type === 'module';
-    } catch { return false; }
-  })();
-  const esmTextSignal = errMsg.includes('ES module scope') || details.includes('ES module scope') || errMsg.includes('module is not defined');
-  const esmStructuralSignal = isEsmProject && (details.includes('Schema violation') || details.includes('Failed to load'));
-  if (esmTextSignal || esmStructuralSignal) {
+  // 증상→원인 판정은 triage 규칙 엔진에 일원화되어 있다 (Node 버전별 증상 차이 흡수).
+  if (triage.hasCause(projectDir, diagResult, triage.CAUSES.ESM_CJS_MISMATCH)) {
     const diagDir = path.join(projectDir, '.vibe-clinic', 'diagnostics');
     const jsPath = path.join(diagDir, `${diagId}.clinic.js`);
     if (fs.existsSync(jsPath)) {
@@ -413,7 +431,7 @@ async function createRepairProposal(projectDir, diagResult, dependencies = {}) {
   }
 }
 
-async function applyRepairProposal(projectDir, proposal) {
+async function applyRepairProposal(projectDir, proposal, options = {}) {
   if (!proposal || !proposal.diagId || !Array.isArray(proposal.repairedFiles) || !Array.isArray(proposal.originalFiles)) {
     return createFailureResult(proposal?.diagId || 'unknown', 'Invalid repair proposal.');
   }
@@ -429,14 +447,59 @@ async function applyRepairProposal(projectDir, proposal) {
       }
     }
 
-    const { modified, backups } = applyChanges(projectDir, proposal.repairedFiles);
-    const rerunResult = await rerunSingleDiagnostic(projectDir, proposal.diagId, modified);
+    const { modified, backups, undoManifest } = applyChanges(projectDir, proposal.repairedFiles);
+    const { allResults, target: rerunResult } = await rerunAllDiagnostics(projectDir, proposal.diagId, modified);
+    const targetHealed = rerunResult?.status === 'OK';
+
+    // P3 회귀 게이트 (MIA Regression Guard): 치료 전 OK였던 다른 진단이
+    // 치료 후 실패로 전환되면 그 치료는 성공이 아니다. SUSPECTED(간헐 의심)
+    // 실패도 회귀로 취급한다 — 안전한 쪽으로 판정.
+    const baseline = Array.isArray(options.baselineResults) ? options.baselineResults : null;
+    const regressions = baseline
+      ? baseline
+          .filter(b => b.status === 'OK' && b.id !== '_no_diagnostics')
+          .filter(b => {
+            const now = allResults.find(r => r.id === b.id);
+            return now && now.status !== 'OK';
+          })
+          .map(b => {
+            const now = allResults.find(r => r.id === b.id);
+            return { id: b.id, status: now.status, details: now.details };
+          })
+      : [];
+
+    // 치료 실패 또는 회귀 발생 → 자동 롤백(P3): .bak 복원 + 신규 파일 삭제.
+    if (!targetHealed || regressions.length > 0) {
+      const restored = rollbackChanges(projectDir, undoManifest);
+      const reason = !targetHealed
+        ? `치료 후에도 대상 진단이 완치되지 않아 자동 롤백했습니다 (${restored.length}개 파일 원상복구).`
+        : `치료가 다른 진단 ${regressions.length}건을 손상시켜(회귀) 자동 롤백했습니다: ${regressions.map(r => r.id).join(', ')} (${restored.length}개 파일 원상복구).`;
+
+      return {
+        success: false,
+        maturity: 'ROLLED_BACK',
+        diagId: proposal.diagId,
+        filesModified: [],
+        backupFiles: backups,
+        rolledBackFiles: restored,
+        regressions,
+        summary: proposal.summary,
+        rerunResult,
+        error: reason,
+        originalFiles: proposal.originalFiles,
+        repairedFiles: proposal.repairedFiles,
+      };
+    }
 
     return {
-      success: rerunResult?.status === 'OK',
+      success: true,
+      // 기준선(치료 전 전체 결과)이 있어 회귀 0을 실증했으면 VERIFIED_RESULT,
+      // 기준선이 없으면 대상 완치만 확인된 APPLIED 로 구분한다 (MIA 성숙도 라벨).
+      maturity: baseline ? 'VERIFIED_RESULT' : 'APPLIED',
       diagId: proposal.diagId,
       filesModified: modified,
       backupFiles: backups,
+      regressions: [],
       summary: proposal.summary,
       rerunResult,
       error: null,
