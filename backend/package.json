@@ -1,0 +1,65 @@
+{
+  "name": "vibe-clinic",
+  "private": true,
+  "version": "2.0.1",
+  "description": "Self-diagnosis framework for vibe coding projects",
+  "main": "src/runner.js",
+  "bin": {
+    "vibe-clinic": "bin/vibe-clinic.js",
+    "vbc": "bin/vibe-clinic.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "test:self": "node bin/vibe-clinic.js run",
+    "test:example": "node bin/vibe-clinic.js run --cwd ../examples/calculator",
+    "dashboard:example": "node --env-file=../.env bin/vibe-clinic.js dashboard --cwd ../examples/calculator --port 7700",
+    "sync:rules": "node bin/sync-rules.js",
+    "sync:rules:global": "node bin/sync-rules.js --global",
+    "serve": "node bin/vibe-clinic.js dashboard --cwd ../examples/calculator --port 7700",
+    "mcp": "node mcp-server/index.js",
+    "dashboard:v1": "node bin/vibe-clinic.js dashboard --ui v1",
+    "dashboard:v2": "node bin/vibe-clinic.js dashboard --ui v2",
+    "dashboard:example:v2": "node --env-file=../.env bin/vibe-clinic.js dashboard --cwd ../examples/calculator --port 7700 --ui v2",
+    "publish": "echo 'Error: Public publishing is strictly prohibited.' && exit 1"
+  },
+  "keywords": [
+    "vibe-coding",
+    "diagnosis",
+    "testing",
+    "self-diagnosis",
+    "quality",
+    "ai",
+    "agent",
+    "byok"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gyeomsVibe/260709_vibe-clinic.git"
+  },
+  "homepage": "https://github.com/gyeomsVibe/260709_vibe-clinic#readme",
+  "bugs": {
+    "url": "https://github.com/gyeomsVibe/260709_vibe-clinic/issues"
+  },
+  "author": "gyeomsVibe <yoongyeomkim0515@gmail.com>",
+  "contributors": [
+    {
+      "name": "Rejard",
+      "email": "lemaiiisk@gmail.com"
+    }
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "type": "commonjs"
+}

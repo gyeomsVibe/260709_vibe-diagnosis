@@ -1,68 +1,31 @@
 {
-  "name": "vibe-clinic",
+  "name": "vibe-clinic-workspace",
   "private": true,
   "version": "2.0.1",
-  "description": "Self-diagnosis framework for vibe coding projects",
-  "main": "src/runner.js",
-  "bin": {
-    "vibe-clinic": "bin/vibe-clinic.js",
-    "vbc": "bin/vibe-clinic.js"
-  },
-  "files": [
-    "bin/",
-    "src/",
-    "templates/",
-    "README.md"
+  "description": "Vibe Clinic backend and frontend workspace",
+  "workspaces": [
+    "backend",
+    "frontend"
   ],
   "scripts": {
-    "test": "node --test \"test/*.test.js\"",
-    "test:self": "node bin/vibe-clinic.js run",
-    "test:example": "node bin/vibe-clinic.js run --cwd examples/calculator",
-    "dashboard:example": "node --env-file=.env bin/vibe-clinic.js dashboard --cwd examples/calculator --port 7700",
-    "sync:rules": "node bin/sync-rules.js",
-    "sync:rules:global": "node bin/sync-rules.js --global",
-    "backend:test": "node --test \"test/*.test.js\"",
-    "backend:serve": "node bin/vibe-clinic.js dashboard --cwd examples/calculator --port 7700",
-    "backend:mcp": "node mcp-server/index.js",
-    "frontend:dev": "npm --prefix dashboard-ui run dev",
-    "frontend:build": "npm --prefix dashboard-ui run build",
-    "frontend:lint": "npm --prefix dashboard-ui run lint",
-    "publish": "echo 'Error: Public publishing is strictly prohibited.' && exit 1",
-    "dashboard:v1": "node bin/vibe-clinic.js dashboard --ui v1",
-    "dashboard:v2": "node bin/vibe-clinic.js dashboard --ui v2",
-    "dashboard:example:v2": "node --env-file=.env bin/vibe-clinic.js dashboard --cwd examples/calculator --port 7700 --ui v2"  },
-  "keywords": [
-    "vibe-coding",
-    "diagnosis",
-    "testing",
-    "self-diagnosis",
-    "quality",
-    "ai",
-    "agent",
-    "byok"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gyeomsVibe/260709_vibe-clinic.git"
-  },
-  "homepage": "https://github.com/gyeomsVibe/260709_vibe-clinic#readme",
-  "bugs": {
-    "url": "https://github.com/gyeomsVibe/260709_vibe-clinic/issues"
-  },
-  "author": "gyeomsVibe <yoongyeomkim0515@gmail.com>",
-  "contributors": [
-    {
-      "name": "Rejard",
-      "email": "lemaiiisk@gmail.com"
-    }
-  ],
-  "license": "Apache-2.0",
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "directories": {
-    "example": "examples",
-    "test": "test"
-  },
-  "type": "commonjs"
+    "test": "npm run backend:test",
+    "test:self": "npm --prefix backend run test:self",
+    "test:example": "npm --prefix backend run test:example",
+    "dashboard:example": "node --env-file=.env backend/bin/vibe-clinic.js dashboard --cwd examples/calculator --port 7700",
+    "sync:rules": "node backend/bin/sync-rules.js",
+    "sync:rules:global": "node backend/bin/sync-rules.js --global",
+    "backend:test": "npm --prefix backend run test",
+    "backend:serve": "npm --prefix backend run serve",
+    "backend:mcp": "npm --prefix backend run mcp",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:lint": "npm --prefix frontend run lint",
+    "frontend:v1:dev": "npm --prefix frontend/legacy-v1/dashboard-ui run dev",
+    "frontend:v1:build": "npm --prefix frontend/legacy-v1/dashboard-ui run build",
+    "frontend:v1:lint": "npm --prefix frontend/legacy-v1/dashboard-ui run lint",
+    "dashboard:v1": "npm --prefix backend run dashboard:v1",
+    "dashboard:v2": "npm --prefix backend run dashboard:v2",
+    "dashboard:example:v2": "node --env-file=.env backend/bin/vibe-clinic.js dashboard --cwd examples/calculator --port 7700 --ui v2",
+    "publish": "echo 'Error: Public publishing is strictly prohibited.' && exit 1"
+  }
 }

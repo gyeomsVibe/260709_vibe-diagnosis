@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { ensureGitignore } = require('./config-manager');
 
-const TEMPLATE_DIR = path.join(__dirname, '..', 'templates');
+const TEMPLATE_DIR = path.join(__dirname, '..', '..', 'templates');
 
 const CLI_PATH = path.join(__dirname, '..', 'bin', 'vibe-clinic.js');
 const MCP_SERVER_PATH = path.join(__dirname, '..', 'mcp-server', 'index.js');

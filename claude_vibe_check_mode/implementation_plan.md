@@ -21,7 +21,7 @@
 
 ### 2. Claude Code 로컬 MCP 서버 등록 및 검증
 - **명령 실행**:
-  - `claude mcp add vibe-clinic -- node d:/D_Workspace_NB/-google-workspace/-antigravity-workspace/260709_vibe-clinic/mcp-server/index.js`
+  - `claude mcp add vibe-clinic -- node d:/D_Workspace_NB/-google-workspace/-antigravity-workspace/260709_vibe-clinic/backend/mcp-server/index.js`
 - **검증**:
   - `claude mcp list` 명령으로 `vibe-clinic`가 정상 등록 및 연결(`√ Connected`)되었는지 상태 확인.
 
@@ -38,8 +38,8 @@
 
 ### 1. 임시 프로젝트 자가진단 검증 (Dry-Run)
 - 임시 프로젝트 생성: `d:/D_Workspace_NB/-google-workspace/-antigravity-workspace/temp-vibe-test`
-- 해당 경로에서 `node bin/vibe-clinic.js init` 실행 및 MCP 도구 무결성 테스트.
-- `temp-vibe-test`에서 `node bin/vibe-clinic.js run` 검증.
+- 해당 경로에서 `node backend/bin/vibe-clinic.js init` 실행 및 MCP 도구 무결성 테스트.
+- `temp-vibe-test`에서 `node backend/bin/vibe-clinic.js run` 검증.
 
 ### 2. Claude Code 트리거 테스트 (Dry-Run)
 - 임시 또는 테스트 프로젝트에서 Claude CLI를 비대화형 모드로 켜서 자가진단 트리거가 올바르게 감지되는지 테스트합니다.

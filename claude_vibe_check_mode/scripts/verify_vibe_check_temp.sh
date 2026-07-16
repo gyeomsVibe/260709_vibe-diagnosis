@@ -5,7 +5,7 @@ TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/vibe-check-claude-XXXXXX")"
 cd "${TEMP_DIR}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BIN_PATH="${SCRIPT_DIR}/../../bin/vibe-clinic.js"
+BIN_PATH="${SCRIPT_DIR}/../../backend/bin/vibe-clinic.js"
 
 node "${BIN_PATH}" init
 node "${BIN_PATH}" run

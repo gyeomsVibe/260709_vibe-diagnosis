@@ -13,7 +13,7 @@ Claude Code용 전역 `vibe-check` 자가진단/교정 모드 패키지입니다
 - `install_claude_vibe_check.sh`  
   macOS/Linux/WSL 자동 설치 스크립트입니다.
 - `scripts/verify_vibe_check_temp.*`  
-  임시 폴더에서 `node ./bin/vibe-clinic.js init/run`을 검증하는 스크립트입니다.
+  임시 폴더에서 `node ./backend/bin/vibe-clinic.js init/run`을 검증하는 스크립트입니다.
 
 ## 에이전트 수행 계약
 

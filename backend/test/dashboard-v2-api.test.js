@@ -2,7 +2,7 @@ const assert = require('node:assert/strict')
 const test = require('node:test')
 const { pathToFileURL } = require('node:url')
 
-const apiUrl = pathToFileURL(require('node:path').join(__dirname, '..', 'dashboard-ui-v2', 'src', 'api', 'dashboardApi.js')).href
+const apiUrl = pathToFileURL(require('node:path').join(__dirname, '..', '..', 'frontend', 'src', 'api', 'dashboardApi.js')).href
 
 async function loadApi() {
   return import(`${apiUrl}?test=${Date.now()}-${Math.random()}`)

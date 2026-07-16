@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/v2/',
   build: {
-    outDir: path.resolve(__dirname, '../src/dist-v2'),
+    outDir: path.resolve(__dirname, '../backend/src/dist-v2'),
     emptyOutDir: true
   },
   server: {

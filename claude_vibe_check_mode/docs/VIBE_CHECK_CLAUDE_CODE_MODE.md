@@ -10,10 +10,10 @@ Antigravity에서 검증된 VIBE_CHECK_GLOBAL_AUTORUN_MODE를 Claude Code에 맞
 |---|---|
 | 전역 트리거 | `~/.claude/skills/vibe-check/SKILL.md` |
 | 전역 규칙 | `~/.claude/CLAUDE.md` |
-| MCP 연결 | `claude mcp add vibe-clinic -- node <absolute-path-to-repository>/mcp-server/index.js` |
+| MCP 연결 | `claude mcp add vibe-clinic -- node <absolute-path-to-repository>/backend/mcp-server/index.js` |
 | 프로젝트별 override | `<project>/.claude/skills/vibe-check/SKILL.md` |
 | 상태 기억 | CLAUDE.md + STATE_BOUNDARY.md + AGENT_PATCH_QUEUE.md |
-| 자동 검증 | `node ./bin/vibe-clinic.js init/run` 임시 smoke |
+| 자동 검증 | `node ./backend/bin/vibe-clinic.js init/run` 임시 smoke |
 
 ## 핵심 차이
 

@@ -13,7 +13,7 @@ Claude Code 환경에서 `vibe-check` 자가진단 모드가 실질적으로 연
 - **목적**: Claude Code가 글로벌 단위로 Vibe Check 자동 실행 모드(승인 모델, Phase A~E 프로세스, 리포트 형식 등)를 인지하고 실행할 수 있도록 규칙 스킬 파일 설치 완료.
 
 ### 2. Claude Code 로컬 MCP 서버 등록 및 상태 확인
-- **등록 명령어**: `claude mcp add vibe-clinic -- node d:/D_Workspace_NB/-google-workspace/-antigravity-workspace/260709_vibe-clinic/mcp-server/index.js`
+- **등록 명령어**: `claude mcp add vibe-clinic -- node d:/D_Workspace_NB/-google-workspace/-antigravity-workspace/260709_vibe-clinic/backend/mcp-server/index.js`
 - **구동 점검**: `claude mcp list` 실행 시 `vibe-clinic` 이름으로 다시 연결 검증해야 함.
 
 ### 3. 규칙 정합성 분석 및 동기화 스크립트 구축

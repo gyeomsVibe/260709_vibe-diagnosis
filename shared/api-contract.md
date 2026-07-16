@@ -137,9 +137,9 @@
 
 | 영역 | 경로 | 담당 | 규칙 |
 |---|---|---|---|
-| 백엔드 | `src/`, `bin/`, `mcp-server/`, `test/` | 백엔드 담당 AI 도구 | 프론트 파일 수정 금지 |
-| 프론트엔드 | `dashboard-ui/` (V2 병합 후 해당 폴더) | 프론트 담당 AI 도구 | 백엔드 파일 수정 금지. 개발은 `npm run frontend:dev`(vite 프록시 `/api`→7700) 사용 |
-| 빌드 산출물 | `src/dist/` | 프론트 빌드가 생성 | 손으로 편집 금지, 프론트 `build` 로만 갱신 |
+| 백엔드 | `backend/src/`, `backend/bin/`, `backend/mcp-server/`, `backend/test/` | 백엔드 담당 AI 도구 | 프론트 파일 수정 금지 |
+| 프론트엔드 | `frontend/` (V2 정식) 및 `frontend/legacy-v1/dashboard-ui/` (V1 보존) | 프론트 담당 AI 도구 | 백엔드 파일 수정 금지. 개발은 `npm run frontend:dev`(vite 프록시 `/api`→7700) 사용 |
+| 빌드 산출물 | `backend/src/dist-v2/` | 프론트 빌드가 생성 | 손으로 편집 금지, 프론트 `build` 로만 갱신 |
 | **계약(이 문서)** | `shared/api-contract.md` | **공동 소유** | 변경은 문서 선(先)수정·합의 → 백엔드(+계약 테스트) → 프론트 순 |
 | 기획 문서 | `# …리브랜딩 구현 계획/` | 공동 (기록) | 번호 증가 방식 유지 |
 

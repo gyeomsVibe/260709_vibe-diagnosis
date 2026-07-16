@@ -14,7 +14,7 @@
 | 3 | **GitHub 원격** | `gyeomsVibe/260709_vibe-clinic` `main` | 이 문서를 포함한 승인 배치를 push한 뒤 `HEAD`와 `origin/main`으로 확인 | 해시를 문서에 고정하지 않고 Git으로 실시간 판정한다. |
 | 4 | **현재 VSIX** | `vscode-extension/vibe-clinic-vscode-2.0.0.vsix` | 현재 Vibe Clinic 소스, 2.0.0 메타데이터, LICENSE/NOTICE로 재빌드 | 로컬 산출물이며 Marketplace 배포는 하지 않았다. |
 | 5 | **구 VSIX** | `vscode-extension/vibe-diagnosis-vscode-1.1.4.vsix` | 리브랜딩 전 산출물 | 2026-07-14 사용자 승인 후 물리 삭제 완료. |
-| 6 | **로컬 의존성** | `mcp-server/node_modules/vibe-clinic` | `file:..` 링크로 현재 루트 코어 사용 | npm registry의 구 배포본과 구분한다. |
+| 6 | **로컬 의존성** | `backend/mcp-server/node_modules/vibe-clinic` | `file:..` 링크로 현재 루트 코어 사용 | npm registry의 구 배포본과 구분한다. |
 | 7 | **npm 배포본** | registry의 기존 패키지 | 원작자 계정의 과거 배포 상태 | 이 저장소는 `private: true`이며 publish하지 않는다. |
 | 8 | **라이선스 귀속** | `LICENSE`, `NOTICE`, `vscode-extension/LICENSE`, `vscode-extension/NOTICE` | Apache-2.0, Vibe Clinic 수정분 Copyright 2026 gyeomsVibe | 원작 Copyright 2025 Rejard와 프로젝트 링크를 보존한다. |
 

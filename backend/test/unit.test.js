@@ -21,7 +21,7 @@ const {
   MAX_BODY_BYTES,
 } = require('../src/dashboard');
 
-const CALC_DIR = path.join(__dirname, '..', 'examples', 'calculator');
+const CALC_DIR = path.join(__dirname, '..', '..', 'examples', 'calculator');
 
 function requestDashboard(port, requestOptions = {}) {
   return new Promise((resolve, reject) => {

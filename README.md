@@ -32,7 +32,7 @@ Add the following JSON block to your AI tool's config file:
   "mcpServers": {
     "vibe-clinic": {
       "command": "node",
-      "args": ["<absolute-path-to-repository>/mcp-server/index.js"]
+      "args": ["<absolute-path-to-repository>/backend/mcp-server/index.js"]
     }
   }
 }
@@ -85,7 +85,7 @@ You: "Apply vibe-clinic to this project"
 Run the CLI from the repository root:
 
 > [!IMPORTANT]
-> Running via npm/npx registry package is currently **not** supported/standard as the registry version does not align with the latest repository changes. You must execute from the local repository root via `node ./bin/vibe-clinic.js` (or `node .\bin\vibe-clinic.js` on Windows).
+> Running via npm/npx registry package is currently **not** supported/standard as the registry version does not align with the latest repository changes. You must execute from the local repository root via `node ./backend/bin/vibe-clinic.js` (or `node .\bin\vibe-clinic.js` on Windows).
 
 ```bash
 # Windows PowerShell
@@ -103,16 +103,16 @@ npm run sync:rules                        # Validate the project adapter and loc
 npm run sync:rules:global                 # Explicitly copy the full local skill to the user-global Claude skill
 
 # macOS/Linux/Git Bash
-node ./bin/vibe-clinic.js init
-node ./bin/vibe-clinic.js run
-node ./bin/vibe-clinic.js run --json
-node ./bin/vibe-clinic.js dashboard
-node ./bin/vibe-clinic.js config get
-node ./bin/vibe-clinic.js config set provider gemini
-node ./bin/vibe-clinic.js config set apiKey ...
-node ./bin/vibe-clinic.js config set model gemini-3.5-flash
-node ./bin/vibe-clinic.js repair <diagId>
-node ./bin/vibe-clinic.js repair --all
+node ./backend/bin/vibe-clinic.js init
+node ./backend/bin/vibe-clinic.js run
+node ./backend/bin/vibe-clinic.js run --json
+node ./backend/bin/vibe-clinic.js dashboard
+node ./backend/bin/vibe-clinic.js config get
+node ./backend/bin/vibe-clinic.js config set provider gemini
+node ./backend/bin/vibe-clinic.js config set apiKey ...
+node ./backend/bin/vibe-clinic.js config set model gemini-3.5-flash
+node ./backend/bin/vibe-clinic.js repair <diagId>
+node ./backend/bin/vibe-clinic.js repair --all
 npm run sync:rules
 npm run sync:rules:global
 ```
@@ -169,8 +169,8 @@ node .\bin\vibe-clinic.js dashboard            # http://localhost:7700
 node .\bin\vibe-clinic.js dashboard --port 8080
 
 # macOS/Linux/Git Bash
-node ./bin/vibe-clinic.js dashboard
-node ./bin/vibe-clinic.js dashboard --port 8080
+node ./backend/bin/vibe-clinic.js dashboard
+node ./backend/bin/vibe-clinic.js dashboard --port 8080
 ```
 
 The dashboard server binds to `127.0.0.1` only, so it is not exposed to other machines on your network.

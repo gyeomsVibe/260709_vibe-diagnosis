@@ -5,7 +5,7 @@ RUN_SMOKE_TEST="${RUN_SMOKE_TEST:-1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-MCP_SERVER_PATH="${PROJECT_ROOT}/mcp-server/index.js"
+MCP_SERVER_PATH="${PROJECT_ROOT}/backend/mcp-server/index.js"
 CLAUDE_DIR="${VIBE_CHECK_TEST_HOME:-$HOME}/.claude"
 SKILL_DIR="${CLAUDE_DIR}/skills/vibe-check"
 SKILL_PATH="${SKILL_DIR}/SKILL.md"
