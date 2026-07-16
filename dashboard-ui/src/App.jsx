@@ -665,6 +665,8 @@ function App() {
           </div>
         </div>
 
+        <a className="btn-secondary" href="/v2" style={{ padding: '8px 12px', borderRadius: '6px', fontSize: '12px', textDecoration: 'none' }}>V2 관제판</a>
+
         {/* 종합 건강도 링 게이지 & HSL Emerald Green Theme */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

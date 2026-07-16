@@ -611,10 +611,19 @@ function startDashboard(projectDir, port = 7700, options = {}) {
     }
 
     if (req.method === 'GET' && !url.pathname.startsWith('/api/')) {
-      const distDir = path.join(__dirname, 'dist');
-      let targetPath = path.join(distDir, url.pathname === '/' ? 'index.html' : url.pathname);
-      
-      if (!targetPath.startsWith(distDir)) {
+      const isV2Request = url.pathname === '/v2' || url.pathname.startsWith('/v2/');
+      const isV1PrefixedRequest = url.pathname === '/v1' || url.pathname.startsWith('/v1/');
+      const distDir = path.resolve(__dirname, isV2Request ? 'dist-v2' : 'dist');
+      const routedPath = isV2Request
+        ? url.pathname.slice('/v2'.length) || '/'
+        : isV1PrefixedRequest
+          ? url.pathname.slice('/v1'.length) || '/'
+          : url.pathname;
+      const relativePath = routedPath === '/' ? 'index.html' : routedPath.replace(/^\/+/, '');
+      let targetPath = path.resolve(distDir, relativePath);
+      const isInsideDist = targetPath === distDir || targetPath.startsWith(`${distDir}${path.sep}`);
+
+      if (!isInsideDist) {
         res.writeHead(403);
         res.end('Forbidden');
         return;
@@ -629,14 +638,12 @@ function startDashboard(projectDir, port = 7700, options = {}) {
         const contentType = MIME_TYPES[ext] || 'application/octet-stream';
         res.writeHead(200, { 'Content-Type': contentType });
         fs.createReadStream(targetPath).pipe(res);
+      } else if (!isV2Request && fs.existsSync(HTML_PATH)) {
+        const html = fs.readFileSync(HTML_PATH, 'utf-8');
+        sendHtml(res, html);
       } else {
-        if (fs.existsSync(HTML_PATH)) {
-          const html = fs.readFileSync(HTML_PATH, 'utf-8');
-          sendHtml(res, html);
-        } else {
-          res.writeHead(404);
-          res.end('Not Found');
-        }
+        res.writeHead(404);
+        res.end(isV2Request ? 'V2 dashboard is not built. Run the V2 dashboard build first.' : 'Not Found');
       }
       return;
     }
@@ -998,7 +1005,8 @@ function startDashboard(projectDir, port = 7700, options = {}) {
 
   server.listen(port, '127.0.0.1', () => {
     const listeningPort = server.address().port;
-    const url = `http://localhost:${listeningPort}`;
+    const initialUi = options.initialUi === 'v2' ? 'v2' : 'v1';
+    const url = `http://localhost:${listeningPort}/${initialUi}`;
     console.log(`\n  \x1b[36m🩺 Vibe Clinic Dashboard\x1b[0m`);
     console.log(`  \x1b[90m${'─'.repeat(40)}\x1b[0m`);
     console.log(`  Running at: \x1b[32m${url}\x1b[0m`);

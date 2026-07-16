@@ -1,0 +1,428 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* HSL Tailored Theme: Emerald Green Focus & Dark Matte Surface */
+  --bg: #090e14;
+  --surface: rgba(18, 25, 35, 0.7);
+  --surface-hover: rgba(26, 36, 50, 0.85);
+  --surface2: #05080c;
+  --surface3: rgba(30, 41, 59, 0.5);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: #10b981;
+  --text: #f4f4f5;
+  --text2: #d4d4d8;
+  --text3: #71717a;
+
+  /* Status Colors (HSL optimized) */
+  --ok: #10b981;
+  --ok-bg: rgba(16, 185, 129, 0.1);
+  --ok-border: rgba(16, 185, 129, 0.4);
+
+  --warn: #f59e0b;
+  --warn-bg: rgba(245, 158, 11, 0.1);
+  --warn-border: rgba(245, 158, 11, 0.4);
+
+  --err: #ef4444;
+  --err-bg: rgba(239, 68, 68, 0.1);
+  --err-border: rgba(239, 68, 68, 0.4);
+
+  --accent: #10b981;
+  --accent-glow: rgba(16, 185, 129, 0.15);
+  --accent2: #059669;
+
+  --radius: 12px;
+  --radius-sm: 6px;
+
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(16, 185, 129, 0.02) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+  position: relative;
+}
+
+/* Glassmorphism Design Utility */
+.glass {
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Header UI */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 0 10px var(--accent-glow));
+}
+
+.logo h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.logo-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ok);
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+/* Bento Grid System */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 3.5fr 8.5fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.column-right {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.bento-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .bento-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Bento Card Style */
+.bento-card {
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 20px var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+/* Accordion */
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 8px 0;
+  color: var(--text3);
+  font-size: 11px;
+  transition: color 0.2s;
+}
+
+.accordion-header:hover {
+  color: var(--text2);
+}
+
+/* Diagnostic Cards Grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Diagnostic Card Details */
+.card-item {
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card-item.status-ok { border-left: 3px solid var(--ok); }
+.card-item.status-warning { border-left: 3px solid var(--warn); }
+.card-item.status-error { border-left: 3px solid var(--err); }
+.card-item.status-pending { border-left: 3px solid var(--text3); }
+
+.card-item.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* Badges */
+.card-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-system { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge-task { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.badge-function { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+/* Switch Toggle UI */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 18px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: rgba(255,255,255,0.1);
+  transition: .2s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text2);
+  transition: .2s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--accent);
+}
+
+input:checked + .slider:before {
+  transform: translateX(16px);
+  background-color: var(--bg);
+}
+
+/* Terminal & Log Streams */
+.terminal-view {
+  background: #06090d;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: #a1a1aa;
+  padding: 12px;
+  overflow: auto;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+}
+
+/* Sliding Drawer */
+.side-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 440px;
+  height: 100vh;
+  background: #070a0f;
+  border-left: 1px solid var(--border);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.side-drawer.active {
+  transform: translateX(0);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--accent);
+  color: #06090d;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-secondary {
+  background: var(--surface3);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+/* Performance Virtual Scroll class */
+.dom-hidden {
+  content-visibility: hidden;
+  contain-intrinsic-size: 120px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeInOpacity {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* The page container must never carry a transform: a transformed ancestor
+   becomes the containing block for position:fixed children (modals, toast),
+   which would break their viewport centering. */
+.container.animate-fade-in {
+  animation-name: fadeInOpacity;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+}
+
+.animate-pulse {
+  animation: pulseGlow 1.6s ease-in-out infinite;
+}
+
+/* Modal overlay: centered popup above everything (help guide, repair preview) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 8, 12, 0.72);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease both;
+}
+
+.modal {
+  background: #0d141d;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 720px;
+  width: 92%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--accent-glow);
+}
+
+/* Toast: hidden by default, slides in only while .show is present */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  z-index: 1100;
+  transform: translate(-50%, -12px);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--ok-border);
+  background: #0d141d;
+  color: var(--text);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+}
+
+.toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.toast.success { border-color: var(--ok-border); box-shadow: 0 8px 24px var(--ok-bg); }
+.toast.error { border-color: var(--err-border); box-shadow: 0 8px 24px var(--err-bg); color: #fca5a5; }

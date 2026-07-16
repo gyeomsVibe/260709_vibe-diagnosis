@@ -21,7 +21,10 @@
     "dashboard:example": "node --env-file=.env bin/vibe-clinic.js dashboard --cwd examples/calculator --port 7700",
     "sync:rules": "node bin/sync-rules.js",
     "sync:rules:global": "node bin/sync-rules.js --global",
-    "publish": "echo 'Error: Public publishing is strictly prohibited.' && exit 1"
+    "publish": "echo 'Error: Public publishing is strictly prohibited.' && exit 1",
+    "dashboard:v1": "node bin/vibe-clinic.js dashboard --ui v1",
+    "dashboard:v2": "node bin/vibe-clinic.js dashboard --ui v2",
+    "dashboard:example:v2": "node --env-file=.env bin/vibe-clinic.js dashboard --cwd examples/calculator --port 7700 --ui v2"
   },
   "keywords": [
     "vibe-coding",

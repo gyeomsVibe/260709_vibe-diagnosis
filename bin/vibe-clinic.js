@@ -10,6 +10,7 @@ const flags = {
   all: args.includes('--all'),
   cwd: null,
   port: 7700,
+  ui: 'v1',
 };
 
 const cwdIndex = args.indexOf('--cwd');
@@ -20,6 +21,16 @@ if (cwdIndex !== -1 && args[cwdIndex + 1]) {
 const portIndex = args.indexOf('--port');
 if (portIndex !== -1 && args[portIndex + 1]) {
   flags.port = parseInt(args[portIndex + 1], 10) || 7700;
+}
+
+const uiIndex = args.indexOf('--ui');
+if (uiIndex !== -1 && args[uiIndex + 1]) {
+  const requestedUi = args[uiIndex + 1].toLowerCase();
+  if (!['v1', 'v2'].includes(requestedUi)) {
+    console.error('Error: --ui must be v1 or v2');
+    process.exit(1);
+  }
+  flags.ui = requestedUi;
 }
 
 const targetDir = flags.cwd || process.cwd();
@@ -49,7 +60,7 @@ async function main() {
     }
     case 'dashboard': {
       const { startDashboard } = require('../src/dashboard');
-      startDashboard(targetDir, flags.port);
+      startDashboard(targetDir, flags.port, { initialUi: flags.ui });
       break;
     }
     case 'config': {
@@ -69,6 +80,7 @@ async function main() {
       console.log('    vibe-clinic run --json           Output results as JSON');
       console.log('    vibe-clinic dashboard            Open web dashboard (default port 7700)');
       console.log('    vibe-clinic dashboard --port 8080  Use custom port');
+      console.log('    vibe-clinic dashboard --ui v2      Open the redesigned V2 dashboard');
       console.log('    vibe-clinic config get           Show current BYOK configuration');
       console.log('    vibe-clinic config set <key> <value>  Set BYOK config (provider, apiKey, model)');
       console.log('    vibe-clinic repair <diagId>      Auto-repair a specific diagnostic with AI');
