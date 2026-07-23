@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { runDiagnostics, discoverDiagnostics } = require('./runner');
+const { summarize } = require('./reporter');
 const { validateDiagnosticModule } = require('./schema');
 const { getByokConfig, saveByokConfig, getResolvedByok } = require('./config-manager');
 const { createRepairProposal, applyRepairProposal, cureAll, readTreatmentLedger } = require('./repairer');
@@ -693,14 +694,8 @@ function startDashboard(projectDir, port = 7700, options = {}) {
         const results = await runDiagnostics(currentProjectDir);
         console.log(`[API POST /api/run] diagnostics completed: ${results.length}`);
         lastRunResults = results;
-        const summary = {
-          total: results.length,
-          ok: results.filter(r => r.status === 'OK').length,
-          warning: results.filter(r => r.status === 'WARNING').length,
-          error: results.filter(r => r.status === 'ERROR').length,
-        };
-        const overallStatus = summary.error > 0 ? 'ERROR' : summary.warning > 0 ? 'WARNING' : 'OK';
-        const healthPercent = summary.total > 0 ? Math.round((summary.ok / summary.total) * 100) : 100;
+        // 요약 계산은 reporter.summarize 한곳을 쓴다 (CLI와 값이 어긋나지 않도록).
+        const { summary, overallStatus, healthPercent } = summarize(results);
         sendJson(res, { results, summary, overallStatus, healthPercent });
       } catch (err) {
         console.error('[API Error] POST /api/run failed');

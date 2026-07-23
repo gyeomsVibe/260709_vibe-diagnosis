@@ -8,7 +8,7 @@ const { Readable } = require('stream');
 
 const { validateDiagnosticModule, validateResult } = require('../src/schema');
 const { discoverDiagnostics, runDiagnostics } = require('../src/runner');
-const { formatResultsJson } = require('../src/reporter');
+const { formatResultsJson, summarize } = require('../src/reporter');
 const { getResolvedByok, getByokConfig, saveByokConfig } = require('../src/config-manager');
 const { initialize } = require('../src/init');
 const { createRepairProposal, applyRepairProposal } = require('../src/repairer');
@@ -307,6 +307,16 @@ test('dashboard rejects oversized JSON request bodies', async () => {
   );
 });
 
+test('dashboard accepts a body exactly at the size limit', async () => {
+  // 정확히 한도인 본문은 통과해야 한다 (제한은 초과분에만 걸린다: size > max).
+  // 파싱은 실패하지만(400) 413 이 아니어야 한다 — 경계 조건을 >=로 바꾸면 여기서 잡힌다.
+  const request = Readable.from([Buffer.alloc(MAX_BODY_BYTES, 'x')]);
+  await assert.rejects(
+    readBody(request),
+    err => err.statusCode !== 413
+  );
+});
+
 // 웹 내장 폴더 탐색 (OS 대화창 대체 — shared/api-contract.md `GET /api/fs/list`)
 test('fs listing returns drive roots and directory children, read-only', () => {
   const roots = listDriveRoots();
@@ -553,6 +563,30 @@ test('formatResultsJson computes summary, overall status, and health', () => {
   assert.strictEqual(json.healthPercent, 50);
 });
 
+test('summarize covers every overall-status branch and the empty case', () => {
+  const R = (status) => ({ id: status, name: status, layer: 'TASK', status, details: '' });
+
+  // 전부 OK → OK / 100%. (변이 N9: warning 조건을 >=0 으로 바꾸면 여기서 WARNING 이 나와 잡힌다)
+  const allOk = summarize([R('OK'), R('OK')]);
+  assert.strictEqual(allOk.overallStatus, 'OK');
+  assert.strictEqual(allOk.healthPercent, 100);
+
+  // 에러가 하나라도 있으면 ERROR (경고보다 우선)
+  const withError = summarize([R('OK'), R('WARNING'), R('ERROR')]);
+  assert.strictEqual(withError.overallStatus, 'ERROR');
+  assert.strictEqual(withError.summary.error, 1);
+
+  // 경고만 있으면 WARNING
+  assert.strictEqual(summarize([R('OK'), R('WARNING')]).overallStatus, 'WARNING');
+
+  // 빈 결과 → 0나누기 없이 100% / OK. (변이 N5: total>0 을 >=0 으로 바꾸면 NaN 이 되어 잡힌다)
+  const empty = summarize([]);
+  assert.strictEqual(empty.summary.total, 0);
+  assert.strictEqual(empty.healthPercent, 100);
+  assert.ok(Number.isFinite(empty.healthPercent), 'healthPercent must never be NaN');
+  assert.strictEqual(empty.overallStatus, 'OK');
+});
+
 test('getResolvedByok prefers environment variables over saved config', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-byok-'));
   const saved = process.env.VIBE_CLINIC_PROVIDER;
@@ -694,7 +728,9 @@ test('every AI provider adapter builds a request its own API accepts', () => {
   const anthropicBody = JSON.parse(PROVIDERS.anthropic.buildBody('claude-sonnet-5', messages));
   assert.strictEqual(anthropicBody.system, 'you are a repair assistant');
   assert.strictEqual(anthropicBody.messages.length, 1);
-  assert.ok(anthropicBody.max_tokens > 0, 'anthropic requires max_tokens');
+  // 단순히 존재(>0)가 아니라 실제로 쓸모 있는 크기여야 한다. max_tokens=1 이면
+  // 응답이 한 토큰에서 잘려 치료 처방이 무용지물이 된다.
+  assert.ok(anthropicBody.max_tokens >= 1024, 'anthropic max_tokens must be usefully large');
   assert.strictEqual(PROVIDERS.anthropic.buildHeaders('k')['anthropic-version'], '2023-06-01');
   assert.strictEqual(
     PROVIDERS.anthropic.extractContent({ content: [{ type: 'text', text: 'hi' }, { type: 'thinking', text: 'x' }] }),

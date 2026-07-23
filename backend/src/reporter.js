@@ -87,7 +87,10 @@ function formatResults(results, projectDir) {
   return lines.join('\n');
 }
 
-function formatResultsJson(results) {
+// 진단 결과 배열에서 요약·전체상태·건강도를 계산한다. CLI(formatResultsJson)와
+// 대시보드(/api/run)가 같은 계산을 두 벌 갖고 있다가 어긋나는 것을 막기 위해 한곳에 둔다.
+// 빈 배열이면 total 0 → 0나누기 대신 healthPercent 100, overallStatus OK.
+function summarize(results) {
   const summary = {
     total: results.length,
     ok: results.filter(r => r.status === 'OK').length,
@@ -104,6 +107,12 @@ function formatResultsJson(results) {
   const healthPercent = summary.total > 0
     ? Math.round((summary.ok / summary.total) * 100)
     : 100;
+
+  return { summary, overallStatus, healthPercent };
+}
+
+function formatResultsJson(results) {
+  const { summary, overallStatus, healthPercent } = summarize(results);
 
   return JSON.stringify({
     results: results.map(r => ({
@@ -122,4 +131,4 @@ function formatResultsJson(results) {
   }, null, 2) + '\n';
 }
 
-module.exports = { formatResults, formatResultsJson };
+module.exports = { formatResults, formatResultsJson, summarize };
