@@ -69,6 +69,17 @@ Add the following JSON block to your AI tool's config file:
 }
 ```
 
+> **Local-only by design.** `vibe-clinic` is a private package and is **not published to npm** — there is no `npx vibe-clinic` install. Point the MCP config at the repository's `backend/mcp-server/index.js` by absolute path, as shown above. (If a project currently pulls in the upstream `vibe-diagnosis` from npm, that is a separate, older package; switch it to this MCP config to use vibe-clinic.)
+
+**Codex uses TOML, not JSON** — put this in `~/.codex/config.toml` instead:
+
+```toml
+[mcp_servers.vibe_clinic]
+command = "node"
+args = ["<absolute-path-to-repository>/backend/mcp-server/index.js"]
+startup_timeout_sec = 60.0
+```
+
 ### 2. Tell your AI agent
 
 > "Apply vibe-clinic to this project"
