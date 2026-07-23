@@ -8,7 +8,8 @@
     "frontend"
   ],
   "scripts": {
-    "test": "npm run backend:test",
+    "test": "npm run backend:test && npm run frontend:test",
+    "frontend:test": "npm --prefix frontend run test",
     "test:self": "npm --prefix backend run test:self",
     "test:example": "npm --prefix backend run test:example",
     "dashboard:example": "node --env-file=.env backend/bin/vibe-clinic.js dashboard --cwd examples/calculator --port 7700",
