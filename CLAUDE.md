@@ -12,5 +12,6 @@
 
 - MCP 진입점은 `backend/mcp-server/index.js` 하나만 사용한다.
 - 런타임은 `backend/`, `frontend/`, `shared/`에, 문서는 `docs/`에, 도구 통합물은 `integrations/`에 둔다.
+- `handbook/`은 프로젝트에 매이지 않는 방법론 교본(백신 개발법)이다. 이 저장소 사정으로 좁히지 말고, 다른 프로젝트에도 그대로 쓸 수 있게 유지한다.
 - 사용자 저장 자료를 이동·이름 변경·삭제하기 전에는 이전·새 절대경로와 복구 방법을 먼저 고지하고 명시적 승인을 받는다.
 - 이전 경로 참조를 고칠 때는 `docs/operations/agent-reference-path-migration.md`의 전환표를 사용한다.

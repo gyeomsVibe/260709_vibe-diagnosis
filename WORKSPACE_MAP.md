@@ -74,4 +74,5 @@
 - `shared/`: API 계약의 단일 진실원이다.
 - `docs/`: `plans/`, `handoff/`, `operations/`, `assets/`만 둔다.
 - `integrations/`: `vscode-extension/`, `claude-vibe-check/`만 둔다.
+- `handbook/`: 백신 개발법 교본이다. 도구·언어에 매이지 않는 방법론만 두고, 이 저장소 전용 설정이나 코드는 넣지 않는다.
 - 사용자 저장 계획 자료는 `docs/plans/[user-docs] vibe-clinic-rebranding/`에 둔다. 이동·이름 변경·삭제 전에 이전·새 절대경로와 복구 방법을 고지하고 별도 승인을 받는다.

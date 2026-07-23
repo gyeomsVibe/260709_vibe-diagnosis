@@ -19,8 +19,25 @@ When coding with AI agents, prove that your project works — with code.
 | `shared/` | API contract source of truth |
 | `docs/` | Plans, handoffs, operations, and non-runtime assets |
 | `integrations/` | VS Code extension and Claude Vibe Check integration |
+| `handbook/` | The Vaccine Method — a tool-agnostic handbook for finding hidden defects |
 
 All AI tools use `backend/mcp-server/index.js` as the single MCP entry point.
+
+---
+
+## 📗 The Vaccine Method — [handbook/](./handbook/README.md)
+
+Passing tests is not proof that something works. Software has two faces: the one you
+see when everything is fine, and the one that only appears when something breaks.
+Nobody looks at the second one, so that is where defects live.
+
+The handbook teaches you to induce failures on purpose — the way a vaccine introduces
+a weakened pathogen — and then open the screen and look. It is written in Korean for
+readers who do not code, and it works on any project, not just this one.
+
+Applied to this repository with **47 tests passing and a clean linter**, it surfaced
+**3 real defects in a single day** — none of which produced an error message.
+See [실증 사례](./handbook/05-실증-사례.md).
 
 ---
 
