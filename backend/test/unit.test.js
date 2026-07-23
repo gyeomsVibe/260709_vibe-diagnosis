@@ -411,6 +411,41 @@ test('runDiagnostics provides ctx.cwd as an alias of ctx.projectDir', async () =
   }
 });
 
+test('runDiagnostics re-reads subject sources from disk on every run', async () => {
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-cache-')));
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+  fs.mkdirSync(diagDir, { recursive: true });
+  const subject = path.join(dir, 'subject.js');
+  fs.writeFileSync(subject, 'module.exports = { value: () => 1 };');
+  fs.writeFileSync(
+    path.join(diagDir, 'subject.clinic.js'),
+    `module.exports = { id: 'subject', name: 'Subject', layer: 'TASK', run(ctx) {
+       const s = require(require('path').join(ctx.projectDir, 'subject.js'));
+       return s.value() === 1
+         ? { status: 'OK', details: 'value=1' }
+         : { status: 'ERROR', details: 'value=' + s.value() };
+     } };`
+  );
+  try {
+    const first = await runDiagnostics(dir);
+    assert.strictEqual(first[0].status, 'OK', first[0].details);
+
+    // 대시보드 서버가 살아 있는 동안 대상 소스가 고쳐진 상황을 재현한다.
+    // 캐시가 남으면 재진단이 옛 코드를 검사해 완치·회귀 판정이 뒤집힌다.
+    fs.writeFileSync(subject, 'module.exports = { value: () => 2 };');
+
+    const second = await runDiagnostics(dir);
+    assert.strictEqual(
+      second[0].status,
+      'ERROR',
+      'a stale module cache made the rerun blind to the edit'
+    );
+    assert.match(second[0].details, /value=2/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('runDiagnostics captures a stack trace in errorMessage when a diagnostic throws', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-log-'));
   const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');

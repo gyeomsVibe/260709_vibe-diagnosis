@@ -64,6 +64,28 @@ async function runSingleAttempt(mod, projectDir, startTime) {
   }
 }
 
+/**
+ * 진단이 검사하는 대상 소스의 모듈 캐시를 비운다.
+ *
+ * 진단 파일만 캐시에서 지우면, 진단이 require 하는 피검사 소스는 첫 로드
+ * 시점 그대로 남는다. 그러면 대시보드 서버가 살아 있는 동안 사용자가 코드를
+ * 고치거나 치료가 파일을 수정해도 재진단이 옛 코드를 검사해 완치·회귀 판정이
+ * 뒤집힌다. node_modules 는 실행 중 바뀌지 않으므로 유지해 로드 비용을 아낀다.
+ */
+function invalidateProjectModuleCache(projectDir) {
+  const isWin = process.platform === 'win32';
+  const norm = (p) => (isWin ? p.toLowerCase() : p);
+  const rootPrefix = norm(path.resolve(projectDir)) + path.sep;
+  const nodeModules = `${path.sep}node_modules${path.sep}`;
+
+  for (const key of Object.keys(require.cache)) {
+    const normalized = norm(key);
+    if (!normalized.startsWith(rootPrefix)) continue;
+    if (normalized.includes(nodeModules)) continue;
+    delete require.cache[key];
+  }
+}
+
 function discoverDiagnostics(projectDir) {
   const diagPath = path.join(projectDir, DIAG_DIR);
 
@@ -91,6 +113,9 @@ async function runDiagnostics(projectDir) {
       duration: 0,
     }];
   }
+
+  // 피검사 소스를 매 실행마다 디스크에서 다시 읽도록 강제한다 (가짜 완치 방지).
+  invalidateProjectModuleCache(projectDir);
 
   for (const filePath of files) {
     const startTime = Date.now();
