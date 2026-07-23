@@ -528,6 +528,30 @@ test('getResolvedByok prefers environment variables over saved config', () => {
   }
 });
 
+test('saveByokConfig ignores the runtime artifacts it creates in the user project', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-ignore-'));
+  try {
+    fs.writeFileSync(path.join(dir, '.gitignore'), 'node_modules/\n');
+    saveByokConfig(dir, { provider: 'gemini', apiKey: 'k', model: 'm' });
+
+    const lines = fs.readFileSync(path.join(dir, '.gitignore'), 'utf-8')
+      .split('\n').map(line => line.trim());
+    // 키·치료 이력·롤백 백업이 사용자 저장소에 커밋되면 안 된다.
+    for (const entry of ['.vibe-clinic/config.json', '.vibe-clinic/treatment-ledger.json', '*.bak']) {
+      assert.ok(lines.includes(entry), `missing ignore entry: ${entry}`);
+    }
+    assert.ok(lines.includes('node_modules/'), 'existing entries must be preserved');
+
+    // 재호출해도 같은 항목을 다시 붙이지 않는다.
+    saveByokConfig(dir, { provider: 'gemini', apiKey: 'k2', model: 'm' });
+    const after = fs.readFileSync(path.join(dir, '.gitignore'), 'utf-8')
+      .split('\n').map(line => line.trim()).filter(Boolean);
+    assert.strictEqual(new Set(after).size, after.length, 'ignore entries must not duplicate');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('getByokConfig masks the API key', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-mask-'));
   try {

@@ -9,3 +9,6 @@ node_modules/
 **/.vibe-clinic/treatment-ledger.json
 claude_vibe_check_mode_package.zip
 .env
+# Treatment backups are written next to the original file for rollback and
+# remain after a successful cure — they are runtime state, not source.
+*.bak

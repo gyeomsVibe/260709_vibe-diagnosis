@@ -90,19 +90,30 @@ function getResolvedByok(projectDir) {
   return resolveByokWithEnv(config.byok);
 }
 
+// Vibe Clinic 이 사용자 프로젝트에 만드는 산출물만 무시 목록에 넣는다.
+// - config.json: BYOK 키가 들어가므로 절대 커밋되면 안 된다.
+// - treatment-ledger.json: 환경별 실행 감사 상태(치료 이력)라 공유 대상이 아니다.
+// - *.bak: 치료 적용 시 롤백용으로 원본 옆에 생기는 백업이며 성공 후에도 남는다.
+const GITIGNORE_ENTRIES = [
+  '.vibe-clinic/config.json',
+  '.vibe-clinic/treatment-ledger.json',
+  '*.bak',
+];
+
 function ensureGitignore(projectDir) {
   const gitignorePath = path.join(projectDir, '.gitignore');
-  const entry = '.vibe-clinic/config.json';
 
   let content = '';
   if (fs.existsSync(gitignorePath)) {
     content = fs.readFileSync(gitignorePath, 'utf-8');
   }
 
-  if (content.split('\n').some(line => line.trim() === entry)) return;
+  const existing = new Set(content.split('\n').map(line => line.trim()));
+  const missing = GITIGNORE_ENTRIES.filter(entry => !existing.has(entry));
+  if (missing.length === 0) return;
 
   const newline = content.length > 0 && !content.endsWith('\n') ? '\n' : '';
-  fs.writeFileSync(gitignorePath, content + newline + entry + '\n', 'utf-8');
+  fs.writeFileSync(gitignorePath, content + newline + missing.join('\n') + '\n', 'utf-8');
 }
 
 module.exports = {

@@ -157,9 +157,13 @@ export default function AppV2() {
 
           <article id="debug" className="panel panel-debug">
             <PanelHeader eyebrow="상세 실행 기록" title={selectedDiagnostic ? selectedDiagnostic.name || selectedDiagnostic.id : '실시간 실행 로그'} action={selectedResult && <StatusBadge status={selectedResult.status} />} />
-            {selectedDiagnostic && <div className="debug-summary"><span>{selectedDiagnostic.id}</span><span>{selectedDiagnostic.layer}</span><span>{selectedResult?.confidence || '미확인'}</span></div>}
+            {/* confidence 는 실패 재현성 지표라 정상 진단에는 없다. 없을 때 '미확인'을
+                띄우면 정상인 진단이 검증되지 않은 것처럼 읽히므로 아예 표시하지 않는다. */}
+            {selectedDiagnostic && <div className="debug-summary"><span>{selectedDiagnostic.id}</span><span>{selectedDiagnostic.layer}</span>{selectedResult?.confidence && <span>{selectedResult.confidence}</span>}</div>}
             {selectedResult?.details && <p className="debug-details">{selectedResult.details}</p>}
-            {selectedResult?.causeHypotheses?.length > 0 && <ul className="hypothesis-list">{selectedResult.causeHypotheses.map((cause, index) => <li key={`${cause}-${index}`}>{cause}</li>)}</ul>}
+            {/* 계약상 causeHypotheses 는 { cause, likelihood, signal } 객체 배열이다.
+                객체를 그대로 렌더링하면 React 가 throw 해 대시보드 전체가 언마운트된다. */}
+            {selectedResult?.causeHypotheses?.length > 0 && <ul className="hypothesis-list">{selectedResult.causeHypotheses.map((hypothesis, index) => <li key={`${hypothesis?.cause ?? 'cause'}-${index}`}>{typeof hypothesis === 'string' ? hypothesis : <><strong>{hypothesis.likelihood}</strong>{' · '}{hypothesis.cause}{hypothesis.signal && <span className="hypothesis-signal"> — {hypothesis.signal}</span>}</>}</li>)}</ul>}
             <LogViewer content={latestLog} />
             {selectedResult && ['ERROR', 'WARNING'].includes(selectedResult.status) && <button className="button button-primary repair-button" type="button" onClick={() => clinic.proposeRepair(selectedDiagId)} disabled={clinic.busy.propose || clinic.repairStates[selectedDiagId] === 'repairing'}><Sparkles size={16} />{clinic.repairStates[selectedDiagId] === 'repairing' ? '치료 제안 생성 중…' : 'AI 치료 처방 요청'}</button>}
           </article>
