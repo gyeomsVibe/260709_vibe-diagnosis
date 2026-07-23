@@ -11,7 +11,13 @@ const flags = {
   cwd: null,
   port: 7700,
   ui: 'v1',
+  filter: null,
 };
+
+const filterIndex = args.indexOf('--filter');
+if (filterIndex !== -1 && args[filterIndex + 1]) {
+  flags.filter = args[filterIndex + 1];
+}
 
 const cwdIndex = args.indexOf('--cwd');
 if (cwdIndex !== -1 && args[cwdIndex + 1]) {
@@ -46,7 +52,7 @@ async function main() {
       const { runDiagnostics } = require('../src/runner');
       const { formatResults, formatResultsJson } = require('../src/reporter');
 
-      const results = await runDiagnostics(targetDir);
+      const results = await runDiagnostics(targetDir, flags.filter);
 
       if (flags.json) {
         process.stdout.write(formatResultsJson(results));
@@ -77,6 +83,7 @@ async function main() {
       console.log('  Usage:');
       console.log('    vibe-clinic init                Initialize .vibe-clinic/ in current project');
       console.log('    vibe-clinic run                 Run all diagnostics');
+      console.log('    vibe-clinic run --filter <id>    Run only diagnostics matching id/filename');
       console.log('    vibe-clinic run --json           Output results as JSON');
       console.log('    vibe-clinic dashboard            Open web dashboard (default port 7700)');
       console.log('    vibe-clinic dashboard --port 8080  Use custom port');

@@ -411,6 +411,48 @@ test('runDiagnostics provides ctx.cwd as an alias of ctx.projectDir', async () =
   }
 });
 
+test('runDiagnostics --filter runs only matching diagnostics', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-filter-'));
+  const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');
+  fs.mkdirSync(diagDir, { recursive: true });
+  const mk = (file, id, layer) => fs.writeFileSync(
+    path.join(diagDir, file),
+    `module.exports = { id: '${id}', name: '${id}', layer: '${layer}', run: () => ({ status: 'OK', details: '${id}' }) };`
+  );
+  mk('ui-ux.clinic.js', 'ui-ux-diagnostic', 'FUNCTION');
+  mk('project.clinic.js', 'project-diagnostic', 'SYSTEM');
+  mk('task-001.clinic.js', 'task-001-arithmetic', 'TASK');
+
+  try {
+    // 필터 없으면 전체
+    const all = await runDiagnostics(dir);
+    assert.strictEqual(all.length, 3);
+
+    // 진단 id 전체로 필터 (원본 도구 방식)
+    const byId = await runDiagnostics(dir, 'ui-ux-diagnostic');
+    assert.strictEqual(byId.length, 1);
+    assert.strictEqual(byId[0].id, 'ui-ux-diagnostic');
+
+    // 파일명 조각으로 필터 (id 는 project-diagnostic, 파일은 project.clinic.js)
+    const byFile = await runDiagnostics(dir, 'project');
+    assert.strictEqual(byFile.length, 1);
+    assert.strictEqual(byFile[0].id, 'project-diagnostic');
+
+    // 계열 접두사로 여러 개 매칭도 가능해야 한다면: 여기선 task 하나뿐
+    const byPrefix = await runDiagnostics(dir, 'task');
+    assert.strictEqual(byPrefix.length, 1);
+    assert.strictEqual(byPrefix[0].id, 'task-001-arithmetic');
+
+    // 아무것도 안 맞으면 _no_match 안내 (빈 배열이 아니라)
+    const none = await runDiagnostics(dir, 'nonexistent-xyz');
+    assert.strictEqual(none.length, 1);
+    assert.strictEqual(none[0].id, '_no_match');
+    assert.strictEqual(none[0].status, 'WARNING');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('runDiagnostics re-reads subject sources from disk on every run', async () => {
   const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'vibe-cache-')));
   const diagDir = path.join(dir, '.vibe-clinic', 'diagnostics');

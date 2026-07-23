@@ -99,9 +99,23 @@ function discoverDiagnostics(projectDir) {
     .map(f => path.join(diagPath, f));
 }
 
-async function runDiagnostics(projectDir) {
+// 진단이 --filter 값과 맞는지 판단한다. 파일명(확장자 제외)과 진단 id 를 모두 보고,
+// 어느 쪽이든 서로를 포함하면 통과시킨다. 원본 도구는 id 전체(ui-ux-diagnostic)로
+// 필터했지만, 파일명 조각(ui-ux)이나 계열 접두사(task)로도 고를 수 있어야 실전에서 편하다.
+// mod 가 없을 때(로드 실패)는 파일명만으로 판정한다.
+function matchesFilter(baseName, mod, needle) {
+  if (!needle) return true;
+  const candidates = [
+    baseName.toLowerCase(),
+    mod && mod.id ? String(mod.id).toLowerCase() : '',
+  ];
+  return candidates.some(value => value && (value.includes(needle) || needle.includes(value)));
+}
+
+async function runDiagnostics(projectDir, filter = null) {
   const files = discoverDiagnostics(projectDir);
   const results = [];
+  const needle = filter ? String(filter).toLowerCase() : null;
 
   if (files.length === 0) {
     return [{
@@ -119,14 +133,17 @@ async function runDiagnostics(projectDir) {
 
   for (const filePath of files) {
     const startTime = Date.now();
+    const baseName = path.basename(filePath).replace(/\.clinic\.(js|cjs)$/, '');
     let mod;
 
     try {
       delete require.cache[require.resolve(filePath)];
       mod = require(filePath);
     } catch (err) {
+      // 로드 실패는 mod.id 를 알 수 없으므로 파일명으로만 필터를 판정한다.
+      if (!matchesFilter(baseName, null, needle)) continue;
       results.push({
-        id: path.basename(filePath).replace(/\.clinic\.(js|cjs)$/, ''),
+        id: baseName,
         name: path.basename(filePath),
         layer: 'UNKNOWN',
         status: 'ERROR',
@@ -138,6 +155,8 @@ async function runDiagnostics(projectDir) {
       });
       continue;
     }
+
+    if (!matchesFilter(baseName, mod, needle)) continue;
 
     const validation = validateDiagnosticModule(mod, filePath);
     if (!validation.valid) {
@@ -179,6 +198,19 @@ async function runDiagnostics(projectDir) {
         duration: firstAttempt.duration + secondAttempt.duration,
       });
     }
+  }
+
+  // 필터를 걸었는데 아무 진단도 맞지 않으면, 진단이 아예 없는 것과 구분해 안내한다.
+  // (진단 파일은 있지만 --filter 값이 어디에도 안 맞은 경우)
+  if (needle && results.length === 0) {
+    return [{
+      id: '_no_match',
+      name: '필터에 맞는 진단 없음 (No Matching Diagnostics)',
+      layer: 'SYSTEM',
+      status: 'WARNING',
+      details: `--filter "${filter}" 에 맞는 진단을 찾지 못했습니다. 진단 id 나 파일명의 일부로 다시 시도하세요.`,
+      duration: 0,
+    }];
   }
 
   // 원인 후보(triage) 부착: 실패 결과에만, 최대 3개.
